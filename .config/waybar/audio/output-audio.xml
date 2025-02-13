@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkMenu" id="menu">
+    <child>
+		<object class="GtkMenuItem" id="fone_ouvido">
+			<property name="label">Fone Ouvido</property>
+        </object>
+	</child>
+	<child>
+        <object class="GtkMenuItem" id="caixa_som">
+			<property name="label">Caixa de Som</property>
+        </object>
+	</child>
+  </object>
+</interface>
