@@ -10,8 +10,8 @@
     "custom/music"
   ],
   "modules-right": [
+    "pulseaudio",
     "custom/input_audio",
-    "custom/output_audio",
     "battery",
     "clock",
     "tray",
@@ -72,33 +72,23 @@
     "format-charging": "󰂄",
     "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰁹"]
   },
-  "custom/audio": {
-    "scroll-step": 1, // %, can be a float
-    "format": "{icon}  {volume}%",
-    "format-bluetooth": "{volume}% {icon}",
-    "format-muted": "",
-    "format-icons": {
-      "default": ["", "", " "]
+  "pulseaudio": {
+     "format": "{volume}% {icon}",
+     "format-bluetooth": "{volume}% {icon}",
+     "format-muted": "",
+     "format-icons":{
+	"headphones": "",
+	"handsfree": "",
+	"headset": "",
+	"phone": "",
+	"phone-muted": "",
+	"portable": "",
+	"car": "",
+	"default": ["", ""]
     },
-    "menu": "on-click",
-    "menu-file": "$HOME/.config/waybar/audio/output-audio.xml",
-    "menu-actions": {
-        "fone_ouvido": "pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo",
-        "caixa_som": "pactl set-default-sink bluez_output.A6_07_23_18_98_1E.1",
-    },
-	"interval": 10
+    "scroll-step": 1,
+    "on-click": "pgrep pavucontrol > /dev/null && killall pavucontrol || pavucontrol"
   },
-  "custom/input_audio": {
-    "format": "  ",
-    "tooltip": "Clique para alternar entrada de áudio",
-    "menu": "on-click",
-    "menu-file": "$HOME/.config/waybar/audio/input-audio.xml",
-    "menu-actions": {
-        "microfone_1": "pactl set-default-source 57 ",
-        "microfone_2": "",
-    },
-    "interval": 10
-  },  
   "network": {
     // "interface": "wlp2*", // (Optional) To force the use of this interface
     "format-wifi": "{icon}"  ,
@@ -112,13 +102,6 @@
   "custom/power": {
 	"format" : "⏻ ",
 	"tooltip": false,
-	"menu": "on-click",
-	"menu-file": "$HOME/.config/waybar/power/power_menu.xml",
-	"menu-actions": {
-		"shutdown": "shutdown",
-		"reboot": "reboot",
-		"suspend": "systemctl suspend",
-		"hibernate": "systemctl hibernate"
-	}
+	"on-click": "sh $HOME/.config/rofi/power/powermenu.sh"
   }
 }
