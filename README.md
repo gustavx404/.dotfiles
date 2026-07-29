@@ -15,9 +15,7 @@ Configurações pessoais do terminal e ferramentas. Compatível com Fedora, Ubun
 ## Instalação Rápida
 
 ```bash
-git clone https://github.com/SEU_USER/dotfiles.git ~/Projects/dotfiles
-cd ~/Projects/dotfiles
-./scripts/install.sh
+curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh | bash
 ```
 
 ## Comandos

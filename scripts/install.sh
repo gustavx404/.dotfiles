@@ -1,10 +1,10 @@
 #!/bin/bash
-# Dotfiles Installer
-# Cross-distro compatible (Fedora, Ubuntu, Arch)
+# Dotfiles Installer - One-liner install
+# Usage: curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh | bash
 
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOTFILES_DIR="$HOME/.dotfiles"
 BACKUP_DIR="$HOME/.config/backup/$(date +%Y%m%d_%H%M%S)"
 
 # Colors
@@ -27,37 +27,15 @@ detect_distro() {
     fi
 }
 
-# Get package manager command
-get_pkg_cmd() {
-    local distro=$1
-    case $distro in
-        fedora) echo "dnf" ;;
-        ubuntu) echo "apt" ;;
-        arch) echo "pacman" ;;
-        *) echo "unknown" ;;
-    esac
-}
-
 # Install package
 install_pkg() {
     local pkg=$1
     local distro=$2
-    local pkg_cmd=$(get_pkg_cmd "$distro")
-    
     case $distro in
-        fedora)
-            sudo dnf install -y "$pkg"
-            ;;
-        ubuntu)
-            sudo apt install -y "$pkg"
-            ;;
-        arch)
-            sudo pacman -S --noconfirm "$pkg"
-            ;;
-        *)
-            error "Unknown distro: $distro"
-            return 1
-            ;;
+        fedora) sudo dnf install -y "$pkg" ;;
+        ubuntu) sudo apt install -y "$pkg" ;;
+        arch) sudo pacman -S --noconfirm "$pkg" ;;
+        *) error "Unknown distro: $distro"; return 1 ;;
     esac
 }
 
@@ -75,12 +53,22 @@ backup_config() {
 link_config() {
     local src=$1
     local dest=$2
-    
     backup_config "$dest"
-    
     mkdir -p "$(dirname "$dest")"
     ln -sf "$src" "$dest"
-    log "Linked: $dest -> $src"
+    log "Linked: $dest"
+}
+
+# Clone or update repo
+setup_repo() {
+    if [ -d "$DOTFILES_DIR" ]; then
+        log "Updating existing dotfiles..."
+        cd "$DOTFILES_DIR" && git pull
+    else
+        log "Cloning dotfiles..."
+        git clone https://github.com/gustavx404/.dotfiles.git "$DOTFILES_DIR"
+        cd "$DOTFILES_DIR"
+    fi
 }
 
 # Main installation
@@ -88,34 +76,24 @@ main() {
     local distro=$(detect_distro)
     log "Detected distro: $distro"
     
-    # Check for required tools
-    for cmd in git curl; do
-        if ! command -v $cmd &> /dev/null; then
-            warn "Installing $cmd..."
-            install_pkg "$cmd" "$distro"
-        fi
-    done
+    # Check for git
+    if ! command -v git &> /dev/null; then
+        warn "Installing git..."
+        install_pkg git "$distro"
+    fi
+    
+    # Setup repo
+    setup_repo
     
     # Create backup directory
     mkdir -p "$BACKUP_DIR"
     
-    # Link shell configs
-    log "Installing shell configs..."
+    # Link configs
+    log "Installing configs..."
     link_config "$DOTFILES_DIR/.config/shell/.zshrc" "$HOME/.zshrc"
     link_config "$DOTFILES_DIR/.config/shell/.bashrc" "$HOME/.bashrc"
-    link_config "$DOTFILES_DIR/.config/shell/aliases.zsh" "$HOME/.config/shell/aliases.zsh"
-    link_config "$DOTFILES_DIR/.config/shell/aliases.bash" "$HOME/.config/shell/aliases.bash"
-    
-    # Link kitty config
-    log "Installing kitty config..."
     link_config "$DOTFILES_DIR/.config/kitty" "$HOME/.config/kitty"
-    
-    # Link fastfetch config
-    log "Installing fastfetch config..."
     link_config "$DOTFILES_DIR/.config/fastfetch" "$HOME/.config/fastfetch"
-    
-    # Link git config
-    log "Installing git config..."
     link_config "$DOTFILES_DIR/.config/git/.gitconfig" "$HOME/.gitconfig"
     
     log "Installation complete!"
@@ -125,12 +103,9 @@ main() {
 
 # Parse arguments
 case "${1:-install}" in
-    install)
-        main
-        ;;
+    install) main ;;
     status)
         log "Checking dotfiles status..."
-        echo ""
         echo "Shell:     $(ls -la ~/.zshrc 2>/dev/null || echo 'NOT INSTALLED')"
         echo "Kitty:     $(ls -la ~/.config/kitty 2>/dev/null || echo 'NOT INSTALLED')"
         echo "Fastfetch: $(ls -la ~/.config/fastfetch 2>/dev/null || echo 'NOT INSTALLED')"
@@ -145,8 +120,5 @@ case "${1:-install}" in
         backup_config "$HOME/.gitconfig"
         log "Backup complete: $BACKUP_DIR"
         ;;
-    *)
-        echo "Usage: $0 {install|status|backup}"
-        exit 1
-        ;;
+    *) echo "Usage: $0 {install|status|backup}"; exit 1 ;;
 esac
