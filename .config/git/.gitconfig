@@ -1,0 +1,40 @@
+[user]
+    name = One
+    email = one@example.com
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor = nvim
+    autocrlf = input
+
+[pull]
+    rebase = true
+
+[push]
+    default = current
+    autoSetupRemote = true
+
+[alias]
+    s = status
+    c = commit
+    p = push
+    l = log --oneline --graph
+    a = add
+    d = diff
+    co = checkout
+    cb = checkout -b
+    br = branch
+    last = log -1 HEAD
+    unstage = reset HEAD --
+    amend = commit --amend --no-edit
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default
+
+[color]
+    ui = auto

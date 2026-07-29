@@ -1,0 +1,14 @@
+# Ignorar backups
+*.bak
+*.backup
+*~
+
+# Ignorar logs
+*.log
+
+# Ignorar caches
+.cache/
+
+# Config pessoal do opencode
+opencode.json
+.opencode/
