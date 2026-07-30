@@ -7,13 +7,11 @@ if status is-interactive
     abbr -a ...     '../..'
     abbr -a ....    '../../..'
 
-    # ---- eza (substitui ls) ----
-    if command -q eza
-        abbr -a ls 'eza --group-directories-first --icons'
-        abbr -a ll 'eza -l --group-directories-first --icons --git'
-        abbr -a la 'eza -la --group-directories-first --icons --git'
-        abbr -a lt 'eza -lT --icons --git-ignore'
-    end
+    # ---- ls (GNU ls padrão, com cores) ----
+    abbr -a ls  'ls --color=auto'
+    abbr -a ll  'ls -la --color=auto'
+    abbr -a la  'ls -A --color=auto'
+    abbr -a l   'ls -CF --color=auto'
 
     # ---- Git ----
     abbr -a g  git
@@ -25,7 +23,7 @@ if status is-interactive
     abbr -a gd 'git d'
 
     # ---- Editor ----
-    abbr -a zshrc  "$EDITOR ~/.config/fish/config.fish"
+    abbr -a fishrc "$EDITOR ~/.config/fish/config.fish"
     abbr -a reload 'exec fish'
 
     # ---- Docker ----
@@ -35,7 +33,6 @@ if status is-interactive
     # ---- Util ----
     abbr -a top  'btop 2>/dev/null; or command top'
     abbr -a htop 'btop 2>/dev/null; or command htop'
-    abbr -a cat  'bat --style=plain 2>/dev/null; or cat'
     abbr -a df   'df -h'
     abbr -a du   'du -h'
     abbr -a free 'free -h'

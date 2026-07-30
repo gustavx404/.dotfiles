@@ -1,6 +1,5 @@
 # ~/.config/fish/config.fish — dotfiles repo
-# Tema: Ayu Dark | Prompt: Starship | Fuzzy: fzf | Cd: zoxide | Ls: eza
-# Fish puro (autosuggestions + syntax highlight nativos, sem plugins externos)
+# Tema: Ayu Dark | Prompt: Starship | Shell: fish (autosuggestions + syntax highlight nativos)
 
 # ---- Histórico ----
 set -g fish_history_size 50000

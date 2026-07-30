@@ -1,6 +1,6 @@
 # Dotfiles
 
-> Terminal Kitty · **Fish** · Starship · zoxide · fzf · eza — tudo sob o tema **Ayu Dark** (azul como acento principal).
+> Terminal Kitty · **Fish** · Starship · btop · fastfetch — tudo sob o tema **Ayu Dark** (azul como acento principal).
 
 Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automaticamente).
 
@@ -15,15 +15,11 @@ Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automat
 | Terminal     | [Kitty](https://sw.kovidgoyal.net/kitty/) 0.47+ |
 | Shell        | [Fish](https://fishshell.com/) 3.7+ (autosuggestions + syntax highlight nativos) |
 | Prompt       | [Starship](https://starship.rs/) com palette Ayu Dark |
-| cd inteligente | [zoxide](https://github.com/ajeetdsouza/zoxide) |
-| Fuzzy finder | [fzf](https://github.com/junegunn/fzf) com preview bat/eza |
-| `ls`         | [eza](https://github.com/eza-community/eza) |
-| `cat`        | [bat](https://github.com/sharkdp/bat) (tema Ayu) |
 | info         | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
 | Monitor      | [btop](https://github.com/aristocratos/btop) (tema Ayu Dark custom) |
 | Fonte        | JetBrainsMono Nerd Font |
 
-> Fish puro, sem plugin manager — autosuggestions, syntax-highlight, abbrs e key bindings já vêm prontos.
+> Stack enxuta: fish (autosuggestions + syntax highlight + abbr nativos), starship (prompt), btop (monitor) e fastfetch (sysinfo). `ls`, `cat`, `cd`, etc usam os do coreutils/GNU default — sem wrappers.
 
 **Paleta Ayu Dark** — `#0A0E14` fundo · `#73D0FF` azul (primária) · `#FFD173` amarelo · `#FF6767` vermelho · `#AAD84C` verde · `#F29E74` laranja-magenta · `#686868` cinza.
 
@@ -48,7 +44,7 @@ Ou, com o repositório já clonado:
 O instalador:
 
 1. Detecta a distro e instala via `dnf` / `apt` / `pacman`:
-   `fish zoxide fzf eza bat fastfetch fd git unzip curl btop` (pacote-a-pacote, pra não derrubar a transação quando um falta).
+   `fish git unzip curl btop fastfetch` (pacote-a-pacote, pra não derrubar a transação quando um falta).
 2. Instala **starship** via script oficial de `starship.rs` em `~/.local/bin` (não empacotado no dnf do Fedora 44).
 3. Instala **JetBrainsMono Nerd Font** (download direto do GitHub).
 4. Aplica todos os symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop}`) e força reaponto de symlinks antigos/stale (do tempo do zsh).
@@ -94,14 +90,11 @@ dotfiles/
 │   │   ├── config.fish          # config principal (cores, history, key bindings)
 │   │   ├── conf.d/              # auto-sourced pelo fish
 │   │   │   ├── 00-fastfetch.fish # auto-run fastfetch no inicio
-│   │   │   ├── env.fish          # PATH, EDITOR, BAT_THEME
+│   │   │   ├── env.fish          # PATH, EDITOR, PAGER
 │   │   │   ├── starship.fish     # init starship
-│   │   │   ├── zoxide.fish       # init zoxide
-│   │   │   ├── fzf.fish          # fzf + key bindings + cores Ayu
 │   │   │   ├── abbrs.fish        # abreviações (.. .., ls, git, etc)
 │   │   │   └── distro.fish       # aliases update/install/search por distro
 │   │   ├── functions/           # comandos personalizados (autoload)
-│   │   │   ├── zi.fish           # zoxide interativo com fzf
 │   │   │   ├── mkcd.fish         # mkdir + cd
 │   │   │   ├── killporta.fish    # mata processo numa porta
 │   │   │   ├── extract.fish      # descompacta qualquer extensão
@@ -113,7 +106,7 @@ dotfiles/
 │   └── install.sh              # instalador multi-distro
 ```
 
-> Fish auto-sourceia `~/.config/fish/conf.d/*.fish` na inicialização — `env`, `starship`, `zoxide`, `fzf`, `abbrs` e `distro` ficam em arquivos separados.
+> Fish auto-sourceia `~/.config/fish/conf.d/*.fish` na inicialização — `env`, `starship`, `abbrs` e `distro` ficam em arquivos separados.
 
 ---
 
@@ -140,14 +133,6 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 ## Shell (Fish)
 
 - **Prompt**: Starship (palette `ayu_dark` em `~/.config/starship/starship.toml`).
-- **cd**: `zoxide` apelidado como `cd` (`z init --cmd cd`) + função `zi` interativo.
-- **fzf**: cores Ayu em `FZF_DEFAULT_OPTS`, key-bindings do fzf carregados em `conf.d/fzf.fish`:
-  - `Ctrl+T` → selecionar arquivo (preview bat)
-  - `Alt+C` → selecionar diretório para cd (preview eza --tree)
-  - `Ctrl+R` → history com preview
-- **eza**: substitui `ls` com ícones e git status.
-- **bat**: `cat` abreviado para `bat` com tema `ayu`.
-- **btop**: substitui `top`/`htop` — tema Ayu Dark custom em `.config/btop/themes/ayu-dark.theme`.
 - **Nativo do fish**: autosuggestions (cinza Ayu), syntax-highlight (comando válido/inválido colorido), abreviações (`abbr` que expandem ao apertar espaço).
 
 ### Abbreviations (`conf.d/abbrs.fish`, expandem ao apertar espaço)
@@ -155,11 +140,10 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 | Abbr       | Comando                                |
 |------------|----------------------------------------|
 | `.. … ….`  | `cd` um/dois/três níveis               |
-| `ls/ll/la` | listagem (eza com ícones)              |
+| `ls/ll/la` | listagem (GNU ls com cores)            |
 | `update`   | atualiza pacotes (dnf/apt/pacman)     |
 | `install`  | instala pacote                         |
 | `g/gs/gl`  | atalhos git (`git s`, `git l`...)      |
-| `cat`      | `bat --style=plain`                    |
 | `top`      | `btop` (com tema Ayu)                  |
 | `htop`     | `btop` (alias)                          |
 | `reload`   | `exec fish` (reinicia o shell)         |
@@ -169,7 +153,6 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 
 | Função             | O que faz                                  |
 |--------------------|--------------------------------------------|
-| `zi`               | zoxide interativo (fzf + preview eza-tree) |
 | `mkcd <dir>`       | cria e entra num diretório                 |
 | `extract <arq>`    | descompacta (tar.gz, zip, 7z, rar, zst...) |
 | `killporta <p>`    | mata processo ouvindo na porta `p`         |

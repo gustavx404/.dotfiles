@@ -163,7 +163,7 @@ main() {
     # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
     # Exceção: starship não empacotado no dnf do Fedora → via script oficial
     local need=()
-    for c in fish zoxide fzf eza bat fastfetch fd git unzip curl btop; do
+    for c in fish git unzip curl btop fastfetch; do
         if ! command -v "$c" >/dev/null 2>&1; then
             need+=("$c")
         fi
