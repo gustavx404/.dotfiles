@@ -51,13 +51,20 @@ O instalador:
 4. Aplica todos os symlinks (`~/.zshrc`, `~/.bashrc`, `~/.gitconfig`, `~/.config/{kitty,shell,starship,fastfetch}`) e força reaponto de symlinks antigos/stale.
 5. Roda `chsh -s /usr/bin/zsh` para tornar o zsh o shell padrão de login.
 
-Verifique o status com `./scripts/install.sh status`. Se `/usr/bin/zsh` não for o login shell depois da primeira rodada, rode manualmente:
+Verifique o status com `./scripts/install.sh status`.
+
+### Shell de login
+
+O instalador tenta tornar o **zsh** seu shell de login trocando `/etc/passwd` via `chsh`. A troca **só vale a partir do próximo login** — sessões já abertas continuam com o shell anterior até serem reabertas (Kitty/Wayland/desktop session).
+
+Se `chsh` falhar (PAM, escritura read-only, etc.), aplique manualmente:
 
 ```bash
-chsh -s /usr/bin/zsh
+chsh -s /usr/bin/zsh          # via PAM (pede senha)
+sudo usermod -s /usr/bin/zsh $USER   # fallback direto em /etc/passwd
 ```
 
-(necessário porque `chsh` altera o `/etc/passwd` — alguns ambientes só aplicam no login seguinte).
+Após isso, **reopen the Kitty / logout-login** para o `$SHELL` virar `/usr/bin/zsh`.
 
 ---
 
