@@ -24,7 +24,7 @@ detect_distro() {
         . /etc/os-release
         case "$ID" in
             fedora|rhel|centos|rocky|alma) echo dnf ;;
-            ubuntu|debian|pop|linuxmint)   echo apt ;;
+            ubuntu|debian|pop|linuxmint|kali)   echo apt ;;
             arch|manjaro|garuda|endeavouros) echo pacman ;;
             *) error "Distro não suportada: $ID"; echo unknown ;;
         esac
