@@ -1,22 +1,7 @@
-# Bash Aliases
+# Alias específicos do Bash (carregado após aliases.sh)
 
-# Navigation
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ls='ls --color=auto'
-alias ll='ls -la'
-alias la='ls -A'
+alias reload='exec bash'
+alias bashrc='$EDITOR ~/.bashrc'
 
-# System
-alias update='sudo dnf update'
-alias install='sudo dnf install'
-alias search='dnf search'
-
-# Quick edit
-alias bashrc='$EDITOR ~/.config/shell/.bashrc'
-alias reload='source ~/.config/shell/.bashrc'
-
-# Safety
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
+# Histórico: marca de tempo e ignorar duplicatas
+alias h='history | tail -30'

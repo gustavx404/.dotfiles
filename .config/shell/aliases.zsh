@@ -1,22 +1,8 @@
-# ZSH Aliases
+# Alias adicionais específicos do ZSH (carregado após aliases.sh)
 
-# Navigation
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ls='ls --color=auto'
-alias ll='ls -la'
-alias la='ls -A'
+# Histórico melhorado de expansão
+alias history-sum='history | awk "{print \$2}" | sort | uniq -c | sort -rn | head -20'
 
-# System
-alias update='sudo dnf update'
-alias install='sudo dnf install'
-alias search='dnf search'
-
-# Quick edit
-alias zshrc='$EDITOR ~/.config/shell/.zshrc'
-alias reload='source ~/.config/shell/.zshrc'
-
-# Safety
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
+# zsh-specific atalhos
+alias reload='exec zsh'
+alias path='echo -e ${PATH//:/\\n}'
