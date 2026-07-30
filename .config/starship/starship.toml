@@ -1,9 +1,13 @@
-# Starship prompt - Ayu Dark / azul como acento
-# Paleta alinhada com kitty/.config/kitty/current-theme.conf
+# Starship prompt — Ayu Dark (blue as primary accent)
+# Palette aligned with kitty/.config/kitty/current-theme.conf
+# Icons: Jet Brain Ns Mono Nerd Font (already installed)
 
 add_newline = false
 
 format = """
+$os\
+$username\
+$hostname\
 $directory\
 $git_branch\
 $git_status\
@@ -11,17 +15,22 @@ $git_state\
 $python\
 $nodejs\
 $rust\
+$golang\
+$php\
+$java\
+$docker_context\
+$package\
 $cmd_duration\
 $line_break\
 $character"""
 
-# ---- Paleta Ayu Dark ----
+# ---- Ayu Dark palette ----
 palette = "ayu_dark"
 
 [palettes.ayu_dark]
 bg       = "#0A0E14"
 fg       = "#B3B1AD"
-blue     = "#73D0FF"   # primária
+blue     = "#73D0FF"   # primary
 cyan     = "#36A3D9"
 green    = "#AAD84C"
 yellow   = "#FFD173"
@@ -29,55 +38,130 @@ red      = "#FF6767"
 magenta  = "#F29E74"
 gray     = "#686868"
 
-# ---- Módulos ----
+# ---- OS / Username / Hostname ----
+
+[os]
+disabled = false
+style    = "fg:blue"
+format   = "[ $symbol]($style) "
+
+[os.symbols]
+Arch     = ""
+Ubuntu   = ""
+Fedora   = ""
+Macos    = ""
+Windows  = "󰍲"
+Linux    = ""
+
+[username]
+show_always = false
+style_user   = "fg:magenta"
+style_root   = "fg:red bold"
+format       = "[$user]($style) in "
+
+[hostname]
+ssh_only = true
+style    = "fg:cyan"
+format   = "[$ssh_symbol$hostname]($style) "
+ssh_symbol = "󰣀 "
+
+# ---- Directory ----
 
 [directory]
-style = "fg:blue bold"
-truncation_length = 3
-truncate_to_repo = true
-read_only = " 󰌾"
-read_only_style = "fg:red"
+style              = "fg:blue bold"
+truncation_length  = 3
+truncate_to_repo   = true
+repo_root_style    = "fg:blue bold underline"
+home_symbol        = "~"
+read_only          = " 󰌾"
+read_only_style    = "fg:red"
+truncation_symbol  = "…/"
+before_repo_root_style = "fg:gray"
 
 [git_branch]
-symbol = " "
-style = "fg:green bold"
+symbol = " "      # nerd font git branch
+style  = "fg:green bold"
+format = "[$symbol$branch(:$remote_branch)]($style) "
 
 [git_status]
-style = "fg:yellow"
+style        = "fg:yellow"
 conflicted   = " "
-ahead        = " ${count} "
-behind       = " ${count} "
-diverged     = "  ${ahead_count}  ${behind_count} "
+ahead        = " ${count}"
+behind       = " ${count}"
+diverged     = "  ${ahead_count} ${behind_count}"
 untracked    = "?"
-stashed      = "$"
+stashed      = " ${count}"
 modified     = "!"
 staged       = "+"
 renamed      = "»"
 deleted      = "✘"
-format       = "([$all_status$ahead_behind]($style) )"
+format       = '([$all_status$ahead_behind]($style) )'
 
 [git_state]
-style = "fg:magenta"
+style       = "fg:magenta"
+rebase      = "REBASING"
+merge       = "MERGING"
+revert      = "REVERTING"
+cherry_pick = "CHERRY-PICKING"
+bisect      = "BISECTING"
+am          = "AM"
+am_or_rebase = "AM/REBASE"
+
+# ---- Languages com ícones Nerd Font ----
 
 [python]
-symbol = " "
-style = "fg:yellow"
+symbol     = ""
+style      = "fg:yellow bold"
+format     = '[${symbol} ${pyenv_prefix}(${version})( \($virtualenv\))]($style) '
 
 [nodejs]
-symbol = " "
-style = "fg:green"
+symbol = ""
+style  = "fg:green"
+format = "[$symbol ($version)]($style) "
 
 [rust]
-symbol = " "
-style = "fg:red"
+symbol = ""
+style  = "fg:red"
+format = "[$symbol ($version)]($style) "
+
+[golang]
+symbol = ""
+style  = "fg:cyan"
+format = "[$symbol ($version)]($style) "
+
+[php]
+symbol = ""
+style  = "fg:magenta"
+format = "[$symbol ($version)]($style) "
+
+[java]
+symbol = ""
+style  = "fg:red"
+format = "[$symbol ($version)]($style) "
+
+[docker_context]
+symbol = ""
+style  = "fg:blue"
+format = "[$symbol $context]($style) "
+
+[package]
+symbol = "󰏗"
+style  = "fg:magenta"
+format = "[$symbol $version]($style) "
+disabled = true
+
+# ---- Command duration ----
 
 [cmd_duration]
 min_time = 1_500
-style = "fg:gray"
-format   = "[ $duration]($style) "
+style    = "fg:gray"
+format   = "[ 󱎫 $duration]($style) "
 
-# Prompt final (línea 2): azul como cor do símbolo
+# ---- Prompt character ----
+
 [character]
-success_symbol = "[ ➜](fg:blue bold)"
-error_symbol   = "[ ➜](fg:red bold)"
-vicmd_symbol   = "[ ❮](fg:magenta bold)"
+success_symbol = "[ ➜ ](fg:blue bold)"
+error_symbol   = "[ ➜ ](fg:red bold)"
+vicmd_symbol   = "[ ❮ ](fg:magenta bold)"
+vimcmd_replace_one_symbol = "[ ❮ ](fg:magenta bold)"
+vimcmd_replace_symbol     = "[ ❮ ](fg:magenta bold)"
