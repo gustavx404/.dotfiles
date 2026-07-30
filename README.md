@@ -64,8 +64,10 @@ chsh -s /usr/bin/zsh          # via PAM (pede senha)
 sudo usermod -s /usr/bin/zsh $USER   # fallback direto em /etc/passwd
 ```
 
-Após instalar, se `$SHELL` ainda mostrar `/bin/bash`, faça **logout/login** da sessão KDE/Wayland (ou reboot).
-* `$SHELL` é herdado da sessão ativa e **não muda sozinho** até a próxima sessão — isso é padrão do Linux, não um bug.
+Após instalar, se `$SHELL` ainda mostrar `/bin/bash`:
+- Provavelmente o **display manager** (`plasmalogin.service` no KDE Plasma 6 / Fedora 44+) iniciou antes do `chsh` e cached seu `SHELL` antigo.
+- Solução: **reiniciar o computador** (ou, se quiser evitar reboot completo, rodar `sudo systemctl restart plasmalogin.service` — derruba a sessão gráfica e força novo login que vai respeitar `/etc/passwd`).
+- Não há nada para o script corrigir — `/etc/passwd` já está correto (`getent passwd $USER | cut -d: -f7`).
 
 ---
 
