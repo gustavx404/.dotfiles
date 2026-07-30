@@ -101,9 +101,22 @@ backup_config() {
 
 link_config() {
     local src=$1 dest=$2
-    backup_config "$dest"
+    # Se já existe um symlink apontando para o lugar ERRADO, força remoção
+    # (ln -sfn não consegue substituir symlink-to-dir com `rm` implícito em alguns casos)
+    if [ -L "$dest" ]; then
+        local cur
+        cur=$(readlink "$dest")
+        if [ "$cur" != "$src" ]; then
+            warn "Substituindo symlink: $dest ($cur → $src)"
+            rm -f "$dest"
+        fi
+    elif [ -e "$dest" ] && [ ! -L "$dest" ]; then
+        # Arquivo/dir real: faz backup
+        backup_config "$dest"
+        rm -rf "$dest"
+    fi
     mkdir -p "$(dirname "$dest")"
-    ln -sfn "$src" "$dest"
+    ln -sf "$src" "$dest"
     log "Link: $dest → $src"
 }
 
