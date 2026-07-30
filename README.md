@@ -64,7 +64,8 @@ chsh -s /usr/bin/zsh          # via PAM (pede senha)
 sudo usermod -s /usr/bin/zsh $USER   # fallback direto em /etc/passwd
 ```
 
-Após isso, **reopen the Kitty / logout-login** para o `$SHELL` virar `/usr/bin/zsh`.
+Após instalar, se `$SHELL` ainda mostrar `/bin/bash`, faça **logout/login** da sessão KDE/Wayland (ou reboot).
+* `$SHELL` é herdado da sessão ativa e **não muda sozinho** até a próxima sessão — isso é padrão do Linux, não um bug.
 
 ---
 

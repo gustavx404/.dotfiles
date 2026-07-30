@@ -23,9 +23,6 @@ export VISUAL="$EDITOR"
 [ -f ~/.config/shell/aliases.sh ] && source ~/.config/shell/aliases.sh
 [ -f ~/.config/shell/aliases.bash ] && source ~/.config/shell/aliases.bash
 
-# ---- Zoxide ----
-command -v zoxide >/dev/null && eval "$(zoxide init bash --cmd cd)"
-
 # ---- eza / exa ----
 if command -v eza >/dev/null; then
   alias ls='eza --group-directories-first --icons'
@@ -49,5 +46,8 @@ if command -v fastfetch >/dev/null && [[ -z $LOADED_FF ]]; then
   fastfetch
   export LOADED_FF=1
 fi
+
+# ---- Zoxide (deve ficar por último — recomendação oficial) ----
+command -v zoxide >/dev/null && eval "$(zoxide init bash --cmd cd)"
 
 export PATH="$HOME/.opencode/bin:$PATH"

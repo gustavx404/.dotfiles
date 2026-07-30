@@ -40,9 +40,6 @@ export PAGER="bat --style=plain" 2>/dev/null || command -v less >/dev/null && ex
 # ---- Starship ----
 command -v starship >/dev/null && eval "$(starship init zsh)"
 
-# ---- Zoxide (cd inteligente) ----
-command -v zoxide >/dev/null && eval "$(zoxide init zsh --cmd cd)"
-
 # ---- fzf ----
 [ -f /usr/share/fzf/shell/key-bindings.zsh ] && source /usr/share/fzf/shell/key-bindings.zsh
 [ -f /usr/share/fzf/shell/completion.zsh ] && source /usr/share/fzf/shell/completion.zsh
@@ -68,3 +65,6 @@ if command -v fastfetch >/dev/null && [[ -f ~/.config/fastfetch/config.jsonc ]] 
   fastfetch
   export LOADED_FF=1
 fi
+
+# ---- Zoxide (deve ficar por último — recomendação oficial) ----
+command -v zoxide >/dev/null && eval "$(zoxide init zsh --cmd cd)"

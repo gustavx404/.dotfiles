@@ -224,15 +224,24 @@ main() {
     if [ -z "$zsh_bin" ]; then
         warn "zsh não está instalado — impossível trocar de shell"
     elif [ "$current_shell" = "$zsh_bin" ]; then
-        info "zsh já é o shell de login ($zsh_bin)"
+        info "Login shell em /etc/passwd já é zsh ($zsh_bin) ✓"
+        if [ "$SHELL" != "$zsh_bin" ]; then
+            warn "Atenção: \$SHELL ainda é '$SHELL' nesta sessão ativa."
+            warn "Isso é normal — a sessão KDE/Wayland em uso herda o login shell de quando foi iniciada."
+            warn "Para ativar o zsh definitivamente:"
+            warn "   • Feche TODAS as janelas do Kitty e abra de novo, OU"
+            warn "   • Faça logout da sessão KDE e entre de novo, OU"
+            warn "   • Reinicie o computador"
+        fi
     else
         info "Trocando shell de login: $current_shell → $zsh_bin"
         if chsh -s "$zsh_bin" 2>/tmp/chsh.err; then
-            log "chsh OK — reopen the terminal/login for shell change to take effect"
+            log "chsh OK — login shell atualizado em /etc/passwd"
+            warn "REINICIE a sessão KDE/Wayland (ou reopen Kitty) para o \$SHELL virar zsh."
         else
             warn "chsh falhou:"
             cat /tmp/chsh.err >&2
-            warn "Solução manual (qualquer uma):"
+            warn "Aplique manualmente (qualquer um):"
             warn "    chsh -s $zsh_bin"
             warn "    sudo usermod -s $zsh_bin $USER"
         fi
