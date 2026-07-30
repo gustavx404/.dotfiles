@@ -13,7 +13,7 @@ shopt -s checkwinsize cdspell dirspell globstar
 export PROMPT_COMMAND='history -a'
 
 # ---- PATH ----
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.opencode/bin:$PATH"
 
 # ---- Editor / Pager ----
 export EDITOR=${EDITOR:-nvim}
@@ -49,3 +49,5 @@ if command -v fastfetch >/dev/null && [[ -z $LOADED_FF ]]; then
   fastfetch
   export LOADED_FF=1
 fi
+
+export PATH="$HOME/.opencode/bin:$PATH"

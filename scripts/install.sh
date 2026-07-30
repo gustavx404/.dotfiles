@@ -216,17 +216,22 @@ main() {
     link_config "$DOTFILES_DIR/.config/fastfetch"       "$HOME/.config/fastfetch"
     link_config "$DOTFILES_DIR/.config/git/.gitconfig"  "$HOME/.gitconfig"
 
-    # Troca shell para zsh
+    # Troca shell para zsh (login shell em /etc/passwd)
     local zsh_bin current_shell
     zsh_bin=$(command -v zsh 2>/dev/null || true)
     current_shell=$(getent passwd "$USER" | cut -d: -f7)
     if [ -z "$zsh_bin" ]; then
         warn "zsh não instalado — skip chsh"
     elif [ "$current_shell" = "$zsh_bin" ]; then
-        info "zsh já é o shell de login"
+        info "zsh já é o shell de login ($zsh_bin)"
     else
         info "Trocando shell de login: $current_shell → $zsh_bin"
-        chsh -s "$zsh_bin" || warn "chsh falhou — rode manualmente: chsh -s $zsh_bin"
+        if chsh -s "$zsh_bin"; then
+            log "chsh OK — zsh será o login shell a partir do próximo login"
+        else
+            warn "chsh falhou — tente manualmente: chsh -s $zsh_bin"
+            warn "  (ou: sudo usermod -s $zsh_bin $USER)"
+        fi
     fi
 
     echo

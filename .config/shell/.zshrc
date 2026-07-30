@@ -25,7 +25,7 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 autoload -Uz colors && colors
 
 # ---- PATH ----
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.opencode/bin:$PATH"
 
 # ---- Editor ----
 export EDITOR=${EDITOR:-nvim}

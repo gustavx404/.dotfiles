@@ -45,10 +45,19 @@ Ou, com o repositório já clonado:
 O instalador:
 
 1. Detecta a distro e instala via `dnf` / `apt` / `pacman`:
-   `zsh starship zoxide fzf eza bat fastfetch git unzip curl`
-2. Instala **JetBrainsMono Nerd Font** (download direto do GitHub).
-3. Aplica todos os symlinks (`~/.zshrc`, `~/.bashrc`, `~/.gitconfig`, `~/.config/{kitty,shell,starship,fastfetch}`).
-4. Roda `chsh -s $(which zsh)` para tornar o zsh o shell padrão.
+   `zsh zoxide fzf eza bat fastfetch git unzip curl` (pacote-a-pacote, pra não derrubar a transação quando um falta).
+2. Instala **starship** via script oficial de `starship.rs` em `~/.local/bin` (não empacotado no dnf do Fedora 44).
+3. Instala **JetBrainsMono Nerd Font** (download direto do GitHub).
+4. Aplica todos os symlinks (`~/.zshrc`, `~/.bashrc`, `~/.gitconfig`, `~/.config/{kitty,shell,starship,fastfetch}`) e força reaponto de symlinks antigos/stale.
+5. Roda `chsh -s /usr/bin/zsh` para tornar o zsh o shell padrão de login.
+
+Verifique o status com `./scripts/install.sh status`. Se `/usr/bin/zsh` não for o login shell depois da primeira rodada, rode manualmente:
+
+```bash
+chsh -s /usr/bin/zsh
+```
+
+(necessário porque `chsh` altera o `/etc/passwd` — alguns ambientes só aplicam no login seguinte).
 
 ---
 
