@@ -88,6 +88,8 @@ dotfiles/
 │   │   ├── btop.conf            # monitor config (blue accent)
 │   │   └── themes/
 │   │       └── ayu-dark.theme   # custom Ayu Dark theme
+│   ├── environment.d/
+│   │   └── dotfiles.conf          # Wayland PATH (~/.local/bin, ~/.cargo/bin, ~/.opencode/bin)
 │   ├── fish/
 │   │   ├── config.fish          # main config (colors, history, key bindings)
 │   │   ├── conf.d/              # auto-sourced by fish

@@ -239,6 +239,7 @@ main() {
     link_config "$DOTFILES_DIR/.config/starship"         "$HOME/.config/starship"
     link_config "$DOTFILES_DIR/.config/fastfetch"        "$HOME/.config/fastfetch"
     link_config "$DOTFILES_DIR/.config/btop"             "$HOME/.config/btop"
+    link_config "$DOTFILES_DIR/.config/environment.d"      "$HOME/.config/environment.d"
     link_config "$DOTFILES_DIR/.config/git/.gitconfig"   "$HOME/.gitconfig"
 
     # Troca shell de login para fish em /etc/passwd
