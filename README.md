@@ -1,6 +1,6 @@
 # Dotfiles
 
-> Terminal Kitty · ZSH · Starship · zoxide · fzf · eza — tudo sob o tema **Ayu Dark** (azul como acento principal).
+> Terminal Kitty · **Fish** · Starship · zoxide · fzf · eza — tudo sob o tema **Ayu Dark** (azul como acento principal).
 
 Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automaticamente).
 
@@ -13,7 +13,7 @@ Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automat
 | Camada       | Ferramenta                          |
 |--------------|-------------------------------------|
 | Terminal     | [Kitty](https://sw.kovidgoyal.net/kitty/) 0.47+ |
-| Shell        | [ZSH](https://www.zsh.org/) 5.9+ / Bash (fallback) |
+| Shell        | [Fish](https://fishshell.com/) 3.7+ (autosuggestions + syntax highlight nativos) |
 | Prompt       | [Starship](https://starship.rs/) com palette Ayu Dark |
 | cd inteligente | [zoxide](https://github.com/ajeetdsouza/zoxide) |
 | Fuzzy finder | [fzf](https://github.com/junegunn/fzf) com preview bat/eza |
@@ -21,8 +21,9 @@ Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automat
 | `cat`        | [bat](https://github.com/sharkdp/bat) (tema Ayu) |
 | info         | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
 | Monitor      | [btop](https://github.com/aristocratos/btop) (tema Ayu Dark custom) |
-| ZSH plugins  | [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) + [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting) |
 | Fonte        | JetBrainsMono Nerd Font |
+
+> Fish puro, sem plugin manager — autosuggestions, syntax-highlight, abbrs e key bindings já vêm prontos.
 
 **Paleta Ayu Dark** — `#0A0E14` fundo · `#73D0FF` azul (primária) · `#FFD173` amarelo · `#FF6767` vermelho · `#AAD84C` verde · `#F29E74` laranja-magenta · `#686868` cinza.
 
@@ -47,23 +48,23 @@ Ou, com o repositório já clonado:
 O instalador:
 
 1. Detecta a distro e instala via `dnf` / `apt` / `pacman`:
-   `zsh zoxide fzf eza bat fastfetch git unzip curl` (pacote-a-pacote, pra não derrubar a transação quando um falta).
+   `fish zoxide fzf eza bat fastfetch fd git unzip curl btop` (pacote-a-pacote, pra não derrubar a transação quando um falta).
 2. Instala **starship** via script oficial de `starship.rs` em `~/.local/bin` (não empacotado no dnf do Fedora 44).
 3. Instala **JetBrainsMono Nerd Font** (download direto do GitHub).
-4. Aplica todos os symlinks (`~/.zshrc`, `~/.bashrc`, `~/.gitconfig`, `~/.config/{kitty,shell,starship,fastfetch}`) e força reaponto de symlinks antigos/stale.
-5. Roda `chsh -s /usr/bin/zsh` para tornar o zsh o shell padrão de login.
+4. Aplica todos os symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop}`) e força reaponto de symlinks antigos/stale (do tempo do zsh).
+5. Roda `chsh -s /usr/bin/fish` para tornar o fish o shell padrão de login.
 
 Verifique o status com `./scripts/install.sh status`.
 
 ### Shell de login
 
-O instalador tenta tornar o **zsh** seu shell de login trocando `/etc/passwd` via `chsh`. A troca **só vale a partir do próximo login** — sessões já abertas continuam com o shell anterior até serem reabertas (Kitty/Wayland/desktop session).
+O instalador tenta tornar o **fish** seu shell de login trocando `/etc/passwd` via `chsh`. A troca **só vale a partir do próximo login** — sessões já abertas continuam com o shell anterior até serem reabertas (Kitty/Wayland/desktop session).
 
 Se `chsh` falhar (PAM, escritura read-only, etc.), aplique manualmente:
 
 ```bash
-chsh -s /usr/bin/zsh          # via PAM (pede senha)
-sudo usermod -s /usr/bin/zsh $USER   # fallback direto em /etc/passwd
+chsh -s /usr/bin/fish          # via PAM (pede senha)
+sudo usermod -s /usr/bin/fish $USER   # fallback direto em /etc/passwd
 ```
 
 Após instalar, se `$SHELL` ainda mostrar `/bin/bash`:
@@ -89,19 +90,30 @@ dotfiles/
 │   │   ├── btop.conf            # config de monitor (blue/azul)
 │   │   └── themes/
 │   │       └── ayu-dark.theme   # tema Ayu Dark custom
-│   ├── shell/
-│   │   ├── .zshrc              # zsh + starship/zoxide/fzf/eza
-│   │   ├── .bashrc             # bash mirror
-│   │   ├── aliases.sh          # aliases comuns (sourced por ambos)
-│   │   ├── aliases.zsh         # extras zsh
-│   │   └── aliases.bash       # extras bash
+│   ├── fish/
+│   │   ├── config.fish          # config principal (cores, history, key bindings)
+│   │   ├── conf.d/              # auto-sourced pelo fish
+│   │   │   ├── 00-fastfetch.fish # auto-run fastfetch no inicio
+│   │   │   ├── env.fish          # PATH, EDITOR, BAT_THEME
+│   │   │   ├── starship.fish     # init starship
+│   │   │   ├── zoxide.fish       # init zoxide
+│   │   │   ├── fzf.fish          # fzf + key bindings + cores Ayu
+│   │   │   ├── abbrs.fish        # abreviações (.. .., ls, git, etc)
+│   │   │   └── distro.fish       # aliases update/install/search por distro
+│   │   ├── functions/           # comandos personalizados (autoload)
+│   │   │   ├── zi.fish           # zoxide interativo com fzf
+│   │   │   ├── mkcd.fish         # mkdir + cd
+│   │   │   ├── killporta.fish    # mata processo numa porta
+│   │   │   ├── extract.fish      # descompacta qualquer extensão
+│   │   │   └── ports.fish        # lista portas em LISTEN
+│   │   └── completions/         # (vazio — pronto pra customizações)
 │   └── git/
 │       └── .gitconfig          # git config com aliases
 ├── scripts/
 │   └── install.sh              # instalador multi-distro
 ```
 
-> `~/.config/shell/` tem que existir antes de sourcear `aliases.sh` — o instalador cuida disso. Para clones manuais: `mkdir -p ~/.config/shell && ln -s .../.config/shell ~/.config/shell-dir` (o symlink aponta a pasta inteira).
+> Fish auto-sourceia `~/.config/fish/conf.d/*.fish` na inicialização — `env`, `starship`, `zoxide`, `fzf`, `abbrs` e `distro` ficam em arquivos separados.
 
 ---
 
@@ -125,45 +137,43 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 
 ---
 
-## Shell
+## Shell (Fish)
 
-- **Prompt**: Starship (cores da palette `ayu_dark` em `starship.toml`).
-- **cd**: `zoxide` apelidado como `cd` (`z init --cmd cd`) + função `zi` que abre interativo com preview fzf.
-- **fzf**: cores Ayu em `FZF_DEFAULT_OPTS`, key-bindings carregados automaticamente.
+- **Prompt**: Starship (palette `ayu_dark` em `~/.config/starship/starship.toml`).
+- **cd**: `zoxide` apelidado como `cd` (`z init --cmd cd`) + função `zi` interativo.
+- **fzf**: cores Ayu em `FZF_DEFAULT_OPTS`, key-bindings do fzf carregados em `conf.d/fzf.fish`:
   - `Ctrl+T` → selecionar arquivo (preview bat)
   - `Alt+C` → selecionar diretório para cd (preview eza --tree)
   - `Ctrl+R` → history com preview
 - **eza**: substitui `ls` com ícones e git status.
-- **bat**: `cat` alias para `bat` com tema `ayu`.
+- **bat**: `cat` abreviado para `bat` com tema `ayu`.
 - **btop**: substitui `top`/`htop` — tema Ayu Dark custom em `.config/btop/themes/ayu-dark.theme`.
-- **zsh-autosuggestions**: sugestões inline cinza baseadas no histórico; `Tab` aceita.
-- **zsh-syntax-highlighting**: comando válido=verde, inválido=vermelho, paths underline.
+- **Nativo do fish**: autosuggestions (cinza Ayu), syntax-highlight (comando válido/inválido colorido), abreviações (`abbr` que expandem ao apertar espaço).
 
-### Aliases comuns (`aliases.sh` — sourceado por zsh e bash)
+### Abbreviations (`conf.d/abbrs.fish`, expandem ao apertar espaço)
 
-| Alias       | Comando                            |
-|-------------|-----------------------------------|
-| `.. … ….`   | `cd` um/dois/três níveis         |
-| `ls/ll/la`  | listagem (eza com ícones)         |
-| `update`    | atualiza pacotes (dnf/apt/pacman) |
-| `install`   | instala pacote                    |
-| `g/gs/gl`   | atalhos git (`git s`, `git l`...) |
-| `cat`       | `bat --style=plain`               |
-| `top`       | `btop` (com tema Ayu)             |
-| `htop`      | `btop` (alias)                    |
-| `ports`     | portas em LISTEN                  |
-| `psg`       | `ps aux \| grep`                  |
-| `extract`   | descompacta (tar.gz, zip, 7z, …)  |
-| `mkcd dir`  | `mkdir -p && cd dir`             |
-| `killporta` | mata processo numa porta         |
-| `reloadzsh` | `exec zsh`                        |
+| Abbr       | Comando                                |
+|------------|----------------------------------------|
+| `.. … ….`  | `cd` um/dois/três níveis               |
+| `ls/ll/la` | listagem (eza com ícones)              |
+| `update`   | atualiza pacotes (dnf/apt/pacman)     |
+| `install`  | instala pacote                         |
+| `g/gs/gl`  | atalhos git (`git s`, `git l`...)      |
+| `cat`      | `bat --style=plain`                    |
+| `top`      | `btop` (com tema Ayu)                  |
+| `htop`     | `btop` (alias)                          |
+| `reload`   | `exec fish` (reinicia o shell)         |
+| `dk/dc`    | docker / docker compose                |
 
-### Funções
+### Funções (em `~/.config/fish/functions/`)
 
-- `zi` — zoxide interativo (zoxide + fzf + preview eza --tree)
-- `mkcd <dir>` — cria e entra num diretório
-- `extract <arq>` — descompacta basedado na extensão
-- `killporta <porta>` — mata processo ouvindo na porta informada
+| Função             | O que faz                                  |
+|--------------------|--------------------------------------------|
+| `zi`               | zoxide interativo (fzf + preview eza-tree) |
+| `mkcd <dir>`       | cria e entra num diretório                 |
+| `extract <arq>`    | descompacta (tar.gz, zip, 7z, rar, zst...) |
+| `killporta <p>`    | mata processo ouvindo na porta `p`         |
+| `ports`            | lista portas em LISTEN                     |
 
 Diferentes aliases de `update/install/search` são escolhidos automaticamente conforme a distro (`/etc/os-release`).
 

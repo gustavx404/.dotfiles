@@ -163,18 +163,11 @@ main() {
     # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
     # Exceção: starship não empacotado no dnf do Fedora → via script oficial
     local need=()
-    for c in zsh zoxide fzf eza bat fastfetch git unzip curl btop; do
+    for c in fish zoxide fzf eza bat fastfetch fd git unzip curl btop; do
         if ! command -v "$c" >/dev/null 2>&1; then
             need+=("$c")
         fi
     done
-    # Plugins zsh (nome do pacote difere do binário) — só em rpm/dpkg
-    case "$pm" in
-        dnf|apt|pacman)
-            rpm -q zsh-autosuggestions zsh-syntax-highlighting >/dev/null 2>&1 || \
-                need+=("zsh-autosuggestions" "zsh-syntax-highlighting")
-            ;;
-    esac
     # starship nao existe em dnf em FC44 — tratado à parte
     command -v starship >/dev/null 2>&1 || starship_missing=1
     if [ ${#need[@]} -gt 0 ]; then
@@ -210,50 +203,56 @@ main() {
 
     install_nerd_font
 
-    # Links
+    # Links — tarefas (apagar links antigos de zsh/bash)
     log "Aplicando symlinks..."
-    link_config "$DOTFILES_DIR/.config/shell/.zshrc"    "$HOME/.zshrc"
-    link_config "$DOTFILES_DIR/.config/shell/.bashrc"   "$HOME/.bashrc"
-    link_config "$DOTFILES_DIR/.config/shell/aliases.sh" "$HOME/.config/shell/aliases.sh"
-    link_config "$DOTFILES_DIR/.config/kitty"           "$HOME/.config/kitty"
-    link_config "$DOTFILES_DIR/.config/starship"        "$HOME/.config/starship"
-    link_config "$DOTFILES_DIR/.config/fastfetch"       "$HOME/.config/fastfetch"
-    link_config "$DOTFILES_DIR/.config/btop"            "$HOME/.config/btop"
-    link_config "$DOTFILES_DIR/.config/git/.gitconfig"  "$HOME/.gitconfig"
+    # Limpa leftovers de migrações anteriores (zsh -> fish)
+    for stale in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.config/shell"; do
+        if [ -L "$stale" ] || [ -e "$stale" ]; then
+            warn "Removendo leftover: $stale"
+            rm -f "$stale" 2>/dev/null || rm -rf "$stale" 2>/dev/null
+        fi
+    done
 
-    # Troca shell de login para zsh em /etc/passwd
-    local zsh_bin current_shell
-    zsh_bin=$(command -v zsh 2>/dev/null || true)
+    link_config "$DOTFILES_DIR/.config/fish"             "$HOME/.config/fish"
+    link_config "$DOTFILES_DIR/.config/kitty"            "$HOME/.config/kitty"
+    link_config "$DOTFILES_DIR/.config/starship"         "$HOME/.config/starship"
+    link_config "$DOTFILES_DIR/.config/fastfetch"        "$HOME/.config/fastfetch"
+    link_config "$DOTFILES_DIR/.config/btop"             "$HOME/.config/btop"
+    link_config "$DOTFILES_DIR/.config/git/.gitconfig"   "$HOME/.gitconfig"
+
+    # Troca shell de login para fish em /etc/passwd
+    local fish_bin current_shell
+    fish_bin=$(command -v fish 2>/dev/null || true)
     current_shell=$(getent passwd "$USER" | cut -d: -f7)
 
-    if [ -z "$zsh_bin" ]; then
-        warn "zsh não está instalado — impossível trocar de shell"
-    elif [ "$current_shell" = "$zsh_bin" ]; then
-        info "Login shell em /etc/passwd já é zsh ($zsh_bin) ✓"
-        if [ "$SHELL" != "$zsh_bin" ]; then
+    if [ -z "$fish_bin" ]; then
+        warn "fish não está instalado — impossível trocar de shell"
+    elif [ "$current_shell" = "$fish_bin" ]; then
+        info "Login shell em /etc/passwd já é fish ($fish_bin) ✓"
+        if [ "$SHELL" != "$fish_bin" ]; then
             warn "Atenção: \$SHELL ainda é '$SHELL' nesta sessão ativa."
-            warn "Isso é normal — a sessão KDE/Wayland em uso herda o login shell de quando foi iniciada."
-            warn "Para ativar o zsh definitivamente:"
+            warn "Isso é normal — a sessão KDE/Wayland herda o login shell de quando foi iniciada."
+            warn "Para ativar o fish definitivamente:"
             warn "   • Feche TODAS as janelas do Kitty e abra de novo, OU"
             warn "   • Faça logout da sessão KDE e entre de novo, OU"
-            warn "   • Reinicie o computador"
+            warn "   • Reinicie o computador (necessário porque plasmalogin cacheia SHELL)"
         fi
     else
-        info "Trocando shell de login: $current_shell → $zsh_bin"
-        if chsh -s "$zsh_bin" 2>/tmp/chsh.err; then
+        info "Trocando shell de login: $current_shell → $fish_bin"
+        if chsh -s "$fish_bin" 2>/tmp/chsh.err; then
             log "chsh OK — login shell atualizado em /etc/passwd"
-            warn "REINICIE a sessão KDE/Wayland (ou reopen Kitty) para o \$SHELL virar zsh."
+            warn "REINICIE o computador (ou systemd restart plasmalogin.service) — Plasma 6 plasmalogin cacheia SHELL"
         else
             warn "chsh falhou:"
             cat /tmp/chsh.err >&2
             warn "Aplique manualmente (qualquer um):"
-            warn "    chsh -s $zsh_bin"
-            warn "    sudo usermod -s $zsh_bin $USER"
+            warn "    chsh -s $fish_bin"
+            warn "    sudo usermod -s $fish_bin $USER"
         fi
     fi
 
     echo
-    log "Pronto! Restart do terminal para ativar as mudancas."
+    log "Pronto! Reinicie o terminal (ou computador) para ativar as mudancas."
     log "Backup em: $BACKUP_DIR"
 }
 
@@ -269,31 +268,37 @@ case "${1:-install}" in
         ;;
     status)
         log "Status das configs:"
-        for f in ~/.zshrc ~/.bashrc ~/.gitconfig; do
+        for f in ~/.gitconfig; do
             [ -L "$f" ] && log "$f → $(readlink "$f")" || warn "$f não linkado"
         done
-        for d in kitty starship fastfetch; do
+        for d in fish kitty starship fastfetch btop; do
             [ -L "$HOME/.config/$d" ] && log "~/.config/$d → $(readlink "$HOME/.config/$d")" || warn "~/.config/$d não linkado"
         done
         echo
-        info "Shell atual: $SHELL"
-        info "zsh:    $(command -v zsh   2>/dev/null || echo 'NÃO instalado')"
-        info "starship: $(command -v starship 2>/dev/null || echo 'NÃO instalado')"
-        info "zoxide: $(command -v zoxide  2>/dev/null || echo 'NÃO instalado')"
-        info "fzf:    $(command -v fzf    2>/dev/null || echo 'NÃO instalado')"
-        info "eza:    $(command -v eza    2>/dev/null || echo 'NÃO instalado')"
+        info "Shell atual:  $SHELL"
+        info "Login shell:  $(getent passwd "$USER" | cut -d: -f7)"
+        info "fish:      $(command -v fish   2>/dev/null || echo 'NÃO instalado')"
+        info "starship:  $(command -v starship 2>/dev/null || echo 'NÃO instalado')"
+        info "zoxide:   $(command -v zoxide  2>/dev/null || echo 'NÃO instalado')"
+        info "fzf:      $(command -v fzf    2>/dev/null || echo 'NÃO instalado')"
+        info "eza:      $(command -v eza    2>/dev/null || echo 'NÃO instalado')"
+        info "bat:      $(command -v bat    2>/dev/null || echo 'NÃO instalado')"
+        info "btop:     $(command -v btop   2>/dev/null || echo 'NÃO instalado')"
+        info "fastfetch:$(command -v fastfetch 2>/dev/null || echo 'NÃO instalado')"
         ;;
     backup)
         log "Backup manual..."
-        for p in ~/.zshrc ~/.bashrc ~/.gitconfig ~/.config/kitty ~/.config/starship ~/.config/fastfetch; do
+        for p in ~/.gitconfig ~/.config/fish ~/.config/kitty ~/.config/starship ~/.config/fastfetch ~/.config/btop; do
             backup_config "$p"
         done
         log "Backup em: $BACKUP_DIR"
         ;;
     uninstall)
         warn "Removendo symlinks..."
-        rm -f ~/.zshrc ~/.bashrc ~/.gitconfig ~/.config/shell/aliases.sh
-        rm -f ~/.config/kitty ~/.config/starship ~/.config/fastfetch 2>/dev/null || true
+        rm -f ~/.gitconfig
+        rm -f ~/.config/fish ~/.config/kitty ~/.config/starship ~/.config/fastfetch ~/.config/btop 2>/dev/null || true
+        # Leftover de versões antigas (zsh/bash)
+        rm -f ~/.zshrc ~/.bashrc ~/.config/shell/aliases.sh 2>/dev/null || true
         rmdir ~/.config/shell 2>/dev/null || true
         log "Symlinks removidos. Pacotes NÃO foram desinstalados."
         ;;
