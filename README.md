@@ -31,7 +31,8 @@ Supports **Fedora**, **Ubuntu**, and **Arch** (the installer auto-detects the di
 
 ```bash
 # installs everything (packages + symlinks + chsh)
-curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh | bash
+# Use the cache-busting ?t= parameter to avoid stale GitHub CDN:
+curl -fsSL "https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh?t=$(date +%s)" | bash
 ```
 
 Or, with the repo already cloned:
@@ -58,7 +59,7 @@ Check status with `./scripts/install.sh status`.
 
 The installer tries to make **fish** your login shell by updating `/etc/passwd` via `chsh`. The change only takes effect at the **next login** — already-running sessions keep their previous shell until reopened (Kitty/Wayland/desktop session).
 
-If `chsh` fails (PAM, read-only filesystem, etc.), apply manually:
+If `chsh` fails (common on Kali / Parrot due to PAM restrictions), the installer automatically falls back to `sudo usermod -s`. Only if both fail, apply manually:
 
 ```bash
 chsh -s /usr/bin/fish          # via PAM (asks for password)

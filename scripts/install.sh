@@ -1,7 +1,8 @@
 #!/bin/bash
 # Dotfiles Installer — multi-distro
 # Usage: ./scripts/install.sh [install|status|backup|uninstall]
-# One-liner: curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh | bash
+# One-liner (cache-bust ?t= ignorance para contornar CDN do GitHub raw):
+#   curl -fsSL "https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh?t=$(date +%s)" | bash
 
 set -e
 
@@ -164,7 +165,13 @@ resolve_dotfiles_dir() {
     # Senão, clona/atualiza em ~/.dotfiles
     if [ -d "$HOME/.dotfiles/.git" ]; then
         log "Atualizando ~/.dotfiles..."
-        git -C "$HOME/.dotfiles" pull --ff-only || warn "git pull falhou"
+        # --ff-only eh suficiente na maioria dos casos; se falhar (divergencia,
+        # mudancas locais nao-committed, branch em estado sujo), faz reset hard
+        # pra garantir que o clone local reflete o remote main.
+        if ! git -C "$HOME/.dotfiles" fetch origin main \
+            || ! git -C "$HOME/.dotfiles" reset --hard origin/main >/dev/null; then
+            warn "git update de ~/.dotfiles falhou — usando estado atual"
+        fi
     else
         log "Clonando dotfiles em ~/.dotfiles..."
         git clone https://github.com/gustavx404/.dotfiles.git "$HOME/.dotfiles"
@@ -265,11 +272,20 @@ main() {
             log "chsh OK — login shell atualizado em /etc/passwd"
             warn "REINICIE o computador (ou systemd restart plasmalogin.service) — Plasma 6 plasmalogin cacheia SHELL"
         else
-            warn "chsh falhou:"
-            cat /tmp/chsh.err >&2
-            warn "Aplique manualmente (qualquer um):"
-            warn "    chsh -s $fish_bin"
-            warn "    sudo usermod -s $fish_bin $USER"
+            warn "chsh falhou ($(head -1 /tmp/chsh.err 2>/dev/null))"
+            # Fallback comum em distro pen-test (Kali, Parrot): PAM bloqueia chsh
+            # para usuarios sem aquela linha em /etc/pam.d/chsh. usermod -s edita
+            # /etc/passwd direto via root e contorna isso.
+            info "Tentando fallback 'sudo usermod -s $fish_bin $USER'..."
+            if sudo usermod -s "$fish_bin" "$USER" 2>/tmp/usermod.err; then
+                log "usermod OK — login shell atualizado em /etc/passwd"
+                warn "REINICIE o computador para a proxima sessao gráfica carregar o fish."
+            else
+                warn "usermod também falhou: $(head -1 /tmp/usermod.err 2>/dev/null)"
+                warn "Aplique manualmente (qualquer um):"
+                warn "    chsh -s $fish_bin"
+                warn "    sudo usermod -s $fish_bin $USER"
+            fi
         fi
     fi
 
