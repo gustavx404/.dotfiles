@@ -56,6 +56,46 @@ alias du='du -h'
 alias free='free -h'
 alias ports='ss -tulanp | grep LISTEN'
 alias psg='ps aux | grep -i'
+alias top='btop 2>/dev/null || top'   # btop substitui top quando disponível
+alias htop='btop 2>/dev/null || htop'
+
+# mkcd: cria dir e faz cd em um comando
+mkcd() { mkdir -p "$1" && cd "$1" }
+
+# killporta: mata processo que escuta na PORTA informada
+killporta() {
+    local port=$1 pid
+    [ -z "$port" ] && { echo "uso: killporta <porta>"; return 1; }
+    pid=$(ss -tlnp 2>/dev/null | grep ":$port " | grep -oP 'pid=\K[0-9]+' | head -1)
+    if [ -z "$pid" ]; then
+        echo "nada escutando na porta $port"
+        return 1
+    fi
+    echo "matando PID $pid (porta $port)"
+    kill "${@:2}" "$pid"
+}
+
+# extract: descompacta qualquer formato conhecido
+extract() {
+    local f=$1
+    [ -z "$f" ] && { echo "uso: extract <arquivo>"; return 1; }
+    [ ! -f "$f" ] && { echo "arquivo não existe: $f"; return 1; }
+    case "$f" in
+        *.tar.bz2|*.tbz2)  tar xjf "$f" ;;
+        *.tar.gz|*.tgz)    tar xzf "$f" ;;
+        *.tar.xz|*.txz)    tar xJf "$f" ;;
+        *.tar.zst)         tar --zstd -xf "$f" ;;
+        *.tar)             tar xf "$f" ;;
+        *.bz2)             bunzip2 "$f" ;;
+        *.gz)              gunzip "$f" ;;
+        *.xz)              unxz "$f" ;;
+        *.zip)             unzip "$f" ;;
+        *.7z)              7z x "$f" ;;
+        *.rar)             unrar x "$f" ;;
+        *.Z)               uncompress "$f" ;;
+        *) echo "extensão não suportada: $f"; return 1 ;;
+    esac
+}
 
 # ----- Edição rápida -----
 alias zshrc='$EDITOR ~/.zshrc'

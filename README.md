@@ -16,10 +16,12 @@ Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automat
 | Shell        | [ZSH](https://www.zsh.org/) 5.9+ / Bash (fallback) |
 | Prompt       | [Starship](https://starship.rs/) com palette Ayu Dark |
 | cd inteligente | [zoxide](https://github.com/ajeetdsouza/zoxide) |
-| Fuzzy finder | [fzf](https://github.com/junegunn/fzf) |
+| Fuzzy finder | [fzf](https://github.com/junegunn/fzf) com preview bat/eza |
 | `ls`         | [eza](https://github.com/eza-community/eza) |
-| `cat`        | [bat](https://github.com/sharkdp/bat) |
+| `cat`        | [bat](https://github.com/sharkdp/bat) (tema Ayu) |
 | info         | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
+| Monitor      | [btop](https://github.com/aristocratos/btop) (tema Ayu Dark custom) |
+| ZSH plugins  | [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) + [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting) |
 | Fonte        | JetBrainsMono Nerd Font |
 
 **Paleta Ayu Dark** — `#0A0E14` fundo · `#73D0FF` azul (primária) · `#FFD173` amarelo · `#FF6767` vermelho · `#AAD84C` verde · `#F29E74` laranja-magenta · `#686868` cinza.
@@ -83,6 +85,10 @@ dotfiles/
 │   │   └── starship.toml       # prompt com palette ayu_dark
 │   ├── fastfetch/
 │   │   └── config.jsonc        # info do sistema (azul como keyColor)
+│   ├── btop/
+│   │   ├── btop.conf            # config de monitor (blue/azul)
+│   │   └── themes/
+│   │       └── ayu-dark.theme   # tema Ayu Dark custom
 │   ├── shell/
 │   │   ├── .zshrc              # zsh + starship/zoxide/fzf/eza
 │   │   ├── .bashrc             # bash mirror
@@ -122,25 +128,42 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 ## Shell
 
 - **Prompt**: Starship (cores da palette `ayu_dark` em `starship.toml`).
-- **cd**: `zoxide` apelidado como `cd` (`z init --cmd cd`).
+- **cd**: `zoxide` apelidado como `cd` (`z init --cmd cd`) + função `zi` que abre interativo com preview fzf.
 - **fzf**: cores Ayu em `FZF_DEFAULT_OPTS`, key-bindings carregados automaticamente.
+  - `Ctrl+T` → selecionar arquivo (preview bat)
+  - `Alt+C` → selecionar diretório para cd (preview eza --tree)
+  - `Ctrl+R` → history com preview
 - **eza**: substitui `ls` com ícones e git status.
-- **bat**: substitui `cat` (quando disponível).
-- **fastfetch**: roda automaticamente ao abrir o terminal (guardado por `LOADED_FF`).
+- **bat**: `cat` alias para `bat` com tema `ayu`.
+- **btop**: substitui `top`/`htop` — tema Ayu Dark custom em `.config/btop/themes/ayu-dark.theme`.
+- **zsh-autosuggestions**: sugestões inline cinza baseadas no histórico; `Tab` aceita.
+- **zsh-syntax-highlighting**: comando válido=verde, inválido=vermelho, paths underline.
 
 ### Aliases comuns (`aliases.sh` — sourceado por zsh e bash)
 
 | Alias       | Comando                            |
 |-------------|-----------------------------------|
 | `.. … ….`   | `cd` um/dois/três níveis         |
-| `ls/ll/la`  | listagem (com eza se disponível)  |
+| `ls/ll/la`  | listagem (eza com ícones)         |
 | `update`    | atualiza pacotes (dnf/apt/pacman) |
 | `install`   | instala pacote                    |
 | `g/gs/gl`   | atalhos git (`git s`, `git l`...) |
 | `cat`       | `bat --style=plain`               |
-| `psg`       | `ps aux \| grep`                  |
+| `top`       | `btop` (com tema Ayu)             |
+| `htop`      | `btop` (alias)                    |
 | `ports`     | portas em LISTEN                  |
+| `psg`       | `ps aux \| grep`                  |
+| `extract`   | descompacta (tar.gz, zip, 7z, …)  |
+| `mkcd dir`  | `mkdir -p && cd dir`             |
+| `killporta` | mata processo numa porta         |
 | `reloadzsh` | `exec zsh`                        |
+
+### Funções
+
+- `zi` — zoxide interativo (zoxide + fzf + preview eza --tree)
+- `mkcd <dir>` — cria e entra num diretório
+- `extract <arq>` — descompacta basedado na extensão
+- `killporta <porta>` — mata processo ouvindo na porta informada
 
 Diferentes aliases de `update/install/search` são escolhidos automaticamente conforme a distro (`/etc/os-release`).
 

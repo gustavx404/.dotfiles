@@ -161,18 +161,22 @@ main() {
     log "Gerenciador de pacotes: $pm"
 
     # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
-    # Exceção: starship não está empacotado no dnf do Fedora → instalaVia script oficial
+    # Exceção: starship não empacotado no dnf do Fedora → via script oficial
     local need=()
-    local starship_missing=0
-    for c in zsh starship zoxide fzf eza bat fastfetch git unzip curl; do
+    for c in zsh zoxide fzf eza bat fastfetch git unzip curl btop; do
         if ! command -v "$c" >/dev/null 2>&1; then
-            if [ "$c" = starship ]; then
-                starship_missing=1
-            else
-                need+=("$c")
-            fi
+            need+=("$c")
         fi
     done
+    # Plugins zsh (nome do pacote difere do binário) — só em rpm/dpkg
+    case "$pm" in
+        dnf|apt|pacman)
+            rpm -q zsh-autosuggestions zsh-syntax-highlighting >/dev/null 2>&1 || \
+                need+=("zsh-autosuggestions" "zsh-syntax-highlighting")
+            ;;
+    esac
+    # starship nao existe em dnf em FC44 — tratado à parte
+    command -v starship >/dev/null 2>&1 || starship_missing=1
     if [ ${#need[@]} -gt 0 ]; then
         info "Pacotes via ${pm}: ${need[*]}"
         # instala um-a-um para não derrubar a transação inteira
@@ -214,6 +218,7 @@ main() {
     link_config "$DOTFILES_DIR/.config/kitty"           "$HOME/.config/kitty"
     link_config "$DOTFILES_DIR/.config/starship"        "$HOME/.config/starship"
     link_config "$DOTFILES_DIR/.config/fastfetch"       "$HOME/.config/fastfetch"
+    link_config "$DOTFILES_DIR/.config/btop"            "$HOME/.config/btop"
     link_config "$DOTFILES_DIR/.config/git/.gitconfig"  "$HOME/.gitconfig"
 
     # Troca shell de login para zsh em /etc/passwd
