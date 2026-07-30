@@ -5,7 +5,7 @@
 
 set -e
 
-DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+DOTFILES_DIR=""   # filled by resolve_dotfiles_dir; the default value used to short-circuit detection
 BACKUP_DIR="$HOME/.config/backup/$(date +%Y%m%d_%H%M%S)"
 
 # ---- Cores ----
@@ -178,6 +178,7 @@ resolve_dotfiles_dir() {
 
 main() {
     local pm=$(detect_distro)
+    local starship_missing=0
     log "Gerenciador de pacotes: $pm"
 
     # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
