@@ -84,18 +84,35 @@ link_config() {
 }
 
 # ------------------------------------------------------------------
-# Setup repo
+# Resolve dotfiles dir
+#   - DOTFILES_DIR env var (preferido)
+#   - repo local atual (se já rodando de um clone)
+#   - ~/\.dotfiles (clone oficial)
 # ------------------------------------------------------------------
 
-setup_repo() {
-    if [ -d "$DOTFILES_DIR/.git" ]; then
-        log "Atualizando dotfiles..."
-        git -C "$DOTFILES_DIR" pull --ff-only || warn "git pull falhou"
-    else
-        log "Clonando dotfiles..."
-        git clone https://github.com/gustavx404/.dotfiles.git "$DOTFILES_DIR"
+resolve_dotfiles_dir() {
+    local script_dir
+    script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+
+    if [ -n "$DOTFILES_DIR" ] && [ -d "$DOTFILES_DIR/.config" ]; then
+        return
     fi
-    cd "$DOTFILES_DIR"
+
+    # Rodando de dentro do repo local?
+    if [ -f "$script_dir/.config/shell/.zshrc" ]; then
+        DOTFILES_DIR="$script_dir"
+        return
+    fi
+
+    # Senão, clona/atualiza em ~/.dotfiles
+    if [ -d "$HOME/.dotfiles/.git" ]; then
+        log "Atualizando ~/.dotfiles..."
+        git -C "$HOME/.dotfiles" pull --ff-only || warn "git pull falhou"
+    else
+        log "Clonando dotfiles em ~/.dotfiles..."
+        git clone https://github.com/gustavx404/.dotfiles.git "$HOME/.dotfiles"
+    fi
+    DOTFILES_DIR="$HOME/.dotfiles"
 }
 
 # ------------------------------------------------------------------
@@ -106,36 +123,25 @@ main() {
     local pm=$(detect_distro)
     log "Gerenciador de pacotes: $pm"
 
-    # Dependências
+    # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
     local need=()
-    local check=(zsh starship zoxide fzf eza bat fastfetch git unzip curl)
-    if [ "$pm" = pacman ]; then check+=(ttf-jetbrainsmono-nerd); fi
-    for c in "${check[@]}"; do
+    for c in zsh starship zoxide fzf eza bat fastfetch git unzip curl; do
         command -v "$c" >/dev/null 2>&1 || need+=("$c")
     done
     if [ ${#need[@]} -gt 0 ]; then
-        info "Instalando: ${need[*]}"
-        case "$pm" in
-            dnf)
-                # eza não está em repo padrão no Fedora < 41 → transfere via cargo as needed
-                local pkgs=()
-                for p in "${need[@]}"; do
-                    case "$p" in
-                        eza) info "eza: tente dnf, depois cargo"; pkgs+=("eza") ;;
-                        *) pkgs+=("$p") ;;
-                    esac
-                done
-                sudo dnf install -y "${pkgs[@]}" || warn "alguns pacotes falharam"
-                command -v eza >/dev/null 2>&1 || {
-                    info "Instalando eza via cargo"
-                    command -v cargo >/dev/null 2>&1 || install_pkg dnf cargo
-                    cargo install --locked eza || warn "cargo eza falhou"
-                }
-                ;;
-            apt)   install_pkg apt "${need[@]}" ;;
-            pacman) install_pkg pacman "${need[@]}" ;;
-            *) error "Não foi possível instalar pacotes automaticamente" ;;
-        esac
+        info "Pacotes a instalar (${pm}): ${need[*]}"
+        install_pkg "$pm" "${need[@]}" || warn "alguns pacotes podem ter falhado"
+        # Nova checagem: ainda falta algum?
+        local still_missing=()
+        for c in "${need[@]}"; do
+            command -v "$c" >/dev/null 2>&1 || still_missing+=("$c")
+        done
+        if [ ${#still_missing[@]} -gt 0 ]; then
+            warn "Continua faltando: ${still_missing[*]}"
+            warn "Verifique se o pacote existe no repo da sua distro e instale manualmente."
+        fi
+    else
+        info "Todos os pacotes já estão instalados"
     fi
 
     install_nerd_font
@@ -151,11 +157,16 @@ main() {
     link_config "$DOTFILES_DIR/.config/git/.gitconfig"  "$HOME/.gitconfig"
 
     # Troca shell para zsh
-    local zsh_bin
+    local zsh_bin current_shell
     zsh_bin=$(command -v zsh 2>/dev/null || true)
-    if [ -n "$zsh_bin" ] && [ "$SHELL" != "$zsh_bin" ]; then
-        info "Trocando shell padrão para zsh..."
-        chsh -s "$zsh_bin" || warn "chsh falhou — troque manualmente: chsh -s $zsh_bin"
+    current_shell=$(getent passwd "$USER" | cut -d: -f7)
+    if [ -z "$zsh_bin" ]; then
+        warn "zsh não instalado — skip chsh"
+    elif [ "$current_shell" = "$zsh_bin" ]; then
+        info "zsh já é o shell de login"
+    else
+        info "Trocando shell de login: $current_shell → $zsh_bin"
+        chsh -s "$zsh_bin" || warn "chsh falhou — rode manualmente: chsh -s $zsh_bin"
     fi
 
     echo
@@ -169,7 +180,8 @@ main() {
 
 case "${1:-install}" in
     install)
-        setup_repo
+        resolve_dotfiles_dir
+        log "Usando: $DOTFILES_DIR"
         main
         ;;
     status)
