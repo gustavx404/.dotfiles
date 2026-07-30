@@ -112,9 +112,9 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 | `Ctrl+Shift+1…6`| Aba 1 a 6             |
 | `Ctrl+Shift+W`  | Nova aba              |
 | `Ctrl+Shift+Q`  | Fechar aba            |
-| `Ctrl+Shift+D`  | Janela vizinha →      |
-| `Ctrl+Shift+A`  | Janela vizinha ←      |
-| `Ctrl+Shift+S`  | Split vertical        |
+| `Ctrl+Shift+A`  | Aba anterior          |
+| `Ctrl+Shift+D`  | Próxima aba           |
+| `Ctrl+Shift+S`  | Split horizontal      |
 | `Ctrl+Shift+F`  | Limpar terminal       |
 
 ---
