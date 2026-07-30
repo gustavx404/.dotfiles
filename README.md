@@ -1,8 +1,8 @@
 # Dotfiles
 
-> Terminal Kitty · **Fish** · Starship · btop · fastfetch — tudo sob o tema **Ayu Dark** (azul como acento principal).
+> Kitty terminal · **Fish** shell · Starship prompt · btop monitor · fastfetch sysinfo — all under the **Ayu Dark** theme (blue as the primary accent).
 
-Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automaticamente).
+Supports **Fedora**, **Ubuntu**, and **Arch** (the installer auto-detects the distro).
 
 ![Terminal Setup](terminal.png)
 
@@ -10,189 +10,187 @@ Suporte a **Fedora**, **Ubuntu** e **Arch** (instalador detecta a distro automat
 
 ## Stack
 
-| Camada       | Ferramenta                          |
-|--------------|-------------------------------------|
-| Terminal     | [Kitty](https://sw.kovidgoyal.net/kitty/) 0.47+ |
-| Shell        | [Fish](https://fishshell.com/) 3.7+ (autosuggestions + syntax highlight nativos) |
-| Prompt       | [Starship](https://starship.rs/) com palette Ayu Dark |
-| info         | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
-| Monitor      | [btop](https://github.com/aristocratos/btop) (tema Ayu Dark custom) |
-| Fonte        | JetBrainsMono Nerd Font |
+| Component | Tool                                          |
+|-----------|-----------------------------------------------|
+| Terminal  | [Kitty](https://sw.kovidgoyal.net/kitty/) 0.47+ |
+| Shell     | [Fish](https://fishshell.com/) 3.7+ (native autosuggestions + syntax highlighting) |
+| Prompt    | [Starship](https://starship.rs/) with Ayu Dark palette |
+| Sysinfo   | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
+| Monitor   | [btop](https://github.com/aristocratos/btop) (custom Ayu Dark theme) |
+| Font      | JetBrainsMono Nerd Font |
 
-> Stack enxuta: fish (autosuggestions + syntax highlight + abbr nativos), starship (prompt), btop (monitor) e fastfetch (sysinfo). `ls`, `cat`, `cd`, etc usam os do coreutils/GNU default — sem wrappers.
+> Lean stack: fish (with native autosuggestions, syntax highlighting, and abbreviations), starship (prompt), btop (monitor), and fastfetch (sysinfo). `ls`, `cat`, `cd`, etc. use GNU coreutils defaults — no wrappers.
 
-**Paleta Ayu Dark** — `#0A0E14` fundo · `#73D0FF` azul (primária) · `#FFD173` amarelo · `#FF6767` vermelho · `#AAD84C` verde · `#F29E74` laranja-magenta · `#686868` cinza.
+**Ayu Dark palette** — `#0A0E14` background · `#73D0FF` blue (primary) · `#FFD173` yellow · `#FF6767` red · `#AAD84C` green · `#F29E74` orange-magenta · `#686868` gray.
 
 ---
 
-## Instalação rápida
+## Quick install
 
 ```bash
-# instala tudo (pacotes + symlinks + chsh)
+# installs everything (packages + symlinks + chsh)
 curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh | bash
 ```
 
-Ou, com o repositório já clonado:
+Or, with the repo already cloned:
 
 ```bash
-./scripts/install.sh            # instalar
-./scripts/install.sh status     # verificar configurações
-./scripts/install.sh backup     # backup das configs existentes
-./scripts/install.sh uninstall  # remover symlinks (não desinstala pacotes)
+./scripts/install.sh            # install
+./scripts/install.sh status     # check configuration status
+./scripts/install.sh backup     # back up existing configs
+./scripts/install.sh uninstall  # remove symlinks (does NOT uninstall packages)
 ```
 
-O instalador:
+The installer:
 
-1. Detecta a distro e instala via `dnf` / `apt` / `pacman`:
-   `fish git unzip curl btop fastfetch` (pacote-a-pacote, pra não derrubar a transação quando um falta).
-2. Instala **starship** via script oficial de `starship.rs` em `~/.local/bin` (não empacotado no dnf do Fedora 44).
-3. Instala **JetBrainsMono Nerd Font** (download direto do GitHub).
-4. Aplica todos os symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop}`) e força reaponto de symlinks antigos/stale (do tempo do zsh).
-5. Roda `chsh -s /usr/bin/fish` para tornar o fish o shell padrão de login.
+1. Detects the distro and installs via `dnf` / `apt` / `pacman`:
+   `fish git unzip curl btop fastfetch` (one package at a time, so a missing package doesn't abort the whole transaction).
+2. Installs **starship** via the official `starship.rs` script into `~/.local/bin` (not packaged in Fedora 44's dnf).
+3. Installs **JetBrainsMono Nerd Font** (downloaded directly from GitHub).
+4. Applies all symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop}`) and forcibly re-points stale symlinks from the old zsh setup.
+5. Runs `chsh -s /usr/bin/fish` to make fish the default login shell.
 
-Verifique o status com `./scripts/install.sh status`.
+Check status with `./scripts/install.sh status`.
 
-### Shell de login
+### Login shell
 
-O instalador tenta tornar o **fish** seu shell de login trocando `/etc/passwd` via `chsh`. A troca **só vale a partir do próximo login** — sessões já abertas continuam com o shell anterior até serem reabertas (Kitty/Wayland/desktop session).
+The installer tries to make **fish** your login shell by updating `/etc/passwd` via `chsh`. The change only takes effect at the **next login** — already-running sessions keep their previous shell until reopened (Kitty/Wayland/desktop session).
 
-Se `chsh` falhar (PAM, escritura read-only, etc.), aplique manualmente:
+If `chsh` fails (PAM, read-only filesystem, etc.), apply manually:
 
 ```bash
-chsh -s /usr/bin/fish          # via PAM (pede senha)
-sudo usermod -s /usr/bin/fish $USER   # fallback direto em /etc/passwd
+chsh -s /usr/bin/fish          # via PAM (asks for password)
+sudo usermod -s /usr/bin/fish $USER   # direct fallback in /etc/passwd
 ```
 
-Após instalar, se `$SHELL` ainda mostrar `/bin/bash`:
-- Provavelmente o **display manager** (`plasmalogin.service` no KDE Plasma 6 / Fedora 44+) iniciou antes do `chsh` e cached seu `SHELL` antigo.
-- Solução: **reiniciar o computador** (ou, se quiser evitar reboot completo, rodar `sudo systemctl restart plasmalogin.service` — derruba a sessão gráfica e força novo login que vai respeitar `/etc/passwd`).
-- Não há nada para o script corrigir — `/etc/passwd` já está correto (`getent passwd $USER | cut -d: -f7`).
+If `$SHELL` still shows `/bin/bash` after installing:
+- The **display manager** (`plasmalogin.service` on KDE Plasma 6 / Fedora 44+) likely started before `chsh` and cached your old `$SHELL`.
+- Fix: **reboot** (or, to avoid a full reboot, run `sudo systemctl restart plasmalogin.service` — this drops the graphical session and forces a fresh login that respects `/etc/passwd`).
+- Nothing for the script to fix — `/etc/passwd` is already correct (`getent passwd $USER | cut -d: -f7`).
 
 ---
 
-## Estrutura
+## Structure
 
 ```
 dotfiles/
 ├── .config/
 │   ├── kitty/
-│   │   ├── kitty.conf         # config principal (inclui o tema)
-│   │   └── current-theme.conf # paleta Ayu Dark (somente cores)
+│   │   ├── kitty.conf         # main config (includes the theme)
+│   │   └── current-theme.conf # Ayu Dark palette (colors only)
 │   ├── starship/
-│   │   └── starship.toml       # prompt com palette ayu_dark
+│   │   └── starship.toml       # prompt with ayu_dark palette
 │   ├── fastfetch/
-│   │   └── config.jsonc        # info do sistema (azul como keyColor)
+│   │   └── config.jsonc        # system info (blue keyColor)
 │   ├── btop/
-│   │   ├── btop.conf            # config de monitor (blue/azul)
+│   │   ├── btop.conf            # monitor config (blue accent)
 │   │   └── themes/
-│   │       └── ayu-dark.theme   # tema Ayu Dark custom
+│   │       └── ayu-dark.theme   # custom Ayu Dark theme
 │   ├── fish/
-│   │   ├── config.fish          # config principal (cores, history, key bindings)
-│   │   ├── conf.d/              # auto-sourced pelo fish
-│   │   │   ├── 00-fastfetch.fish # auto-run fastfetch no inicio
+│   │   ├── config.fish          # main config (colors, history, key bindings)
+│   │   ├── conf.d/              # auto-sourced by fish
+│   │   │   ├── 00-fastfetch.fish # auto-run fastfetch on startup
 │   │   │   ├── env.fish          # PATH, EDITOR, PAGER
 │   │   │   ├── starship.fish     # init starship
-│   │   │   ├── abbrs.fish        # abreviações (.. .., ls, git, etc)
-│   │   │   └── distro.fish       # aliases update/install/search por distro
-│   │   ├── functions/           # comandos personalizados (autoload)
+│   │   │   ├── abbrs.fish        # abbreviations (.. .., ls, git, etc)
+│   │   │   └── distro.fish       # update/install/search aliases per distro
+│   │   ├── functions/           # custom commands (autoload)
 │   │   │   ├── mkcd.fish         # mkdir + cd
-│   │   │   ├── killporta.fish    # mata processo numa porta
-│   │   │   ├── extract.fish      # descompacta qualquer extensão
-│   │   │   └── ports.fish        # lista portas em LISTEN
-│   │   └── completions/         # (vazio — pronto pra customizações)
+│   │   │   ├── killport.fish     # kill process on a port
+│   │   │   ├── extract.fish      # unpack any extension
+│   │   │   └── ports.fish        # list ports in LISTEN
+│   │   └── completions/         # (empty — ready for customizations)
 │   └── git/
-│       └── .gitconfig          # git config com aliases
+│       └── .gitconfig          # git config with aliases
 ├── scripts/
-│   └── install.sh              # instalador multi-distro
+│   └── install.sh              # multi-distro installer
 ```
 
-> Fish auto-sourceia `~/.config/fish/conf.d/*.fish` na inicialização — `env`, `starship`, `abbrs` e `distro` ficam em arquivos separados.
+> Fish auto-sources `~/.config/fish/conf.d/*.fish` at startup — `env`, `starship`, `abbrs`, and `distro` live in separate files.
 
 ---
 
-## Kitty Terminal
+## Kitty terminal
 
-Tema **Ayu Dark** carregado via `include current-theme.conf` (mantém cores separadas da config). Transparência 85% + blur 30.
+**Ayu Dark** theme loaded via `include current-theme.conf` (keeps colors separate from the config). 85% transparency + 30 blur.
 
-### Atalhos de teclado (mão esquerda)
+### Keyboard shortcuts (left-hand friendly, `Ctrl+Shift` prefix)
 
-Todos usam `Alt` (mod1) para operar só com a mão esquerda.
-
-| Atalho          | Ação                  |
+| Shortcut        | Action                |
 |-----------------|-----------------------|
-| `Ctrl+Shift+1…6`| Aba 1 a 6             |
-| `Ctrl+Shift+W`  | Nova aba              |
-| `Ctrl+Shift+Q`  | Fechar aba            |
-| `Ctrl+Shift+A`  | Aba anterior          |
-| `Ctrl+Shift+D`  | Próxima aba           |
-| `Ctrl+Shift+S`  | Split horizontal      |
-| `Ctrl+Shift+F`  | Limpar terminal       |
+| `Ctrl+Shift+1…6`| Tab 1 to 6            |
+| `Ctrl+Shift+W`  | New tab               |
+| `Ctrl+Shift+Q`  | Close tab             |
+| `Ctrl+Shift+A`  | Previous tab          |
+| `Ctrl+Shift+D`  | Next tab              |
+| `Ctrl+Shift+S`  | Horizontal split      |
+| `Ctrl+Shift+F`  | Clear terminal        |
 
 ---
 
 ## Shell (Fish)
 
-- **Prompt**: Starship (palette `ayu_dark` em `~/.config/starship/starship.toml`).
-- **Nativo do fish**: autosuggestions (cinza Ayu), syntax-highlight (comando válido/inválido colorido), abreviações (`abbr` que expandem ao apertar espaço).
+- **Prompt**: Starship (`ayu_dark` palette in `~/.config/starship/starship.toml`).
+- **Native to fish**: autosuggestions (Ayu gray), syntax highlighting (valid/invalid command coloring), abbreviations (`abbr` that expand when you press space).
 
-### Abbreviations (`conf.d/abbrs.fish`, expandem ao apertar espaço)
+### Abbreviations (`conf.d/abbrs.fish`, expand on space)
 
-| Abbr       | Comando                                |
+| Abbr       | Command                                |
 |------------|----------------------------------------|
-| `.. … ….`  | `cd` um/dois/três níveis               |
-| `ls/ll/la` | listagem (GNU ls com cores)            |
-| `update`   | atualiza pacotes (dnf/apt/pacman)     |
-| `install`  | instala pacote                         |
-| `g/gs/gl`  | atalhos git (`git s`, `git l`...)      |
-| `top`      | `btop` (com tema Ayu)                  |
-| `htop`     | `btop` (alias)                          |
-| `reload`   | `exec fish` (reinicia o shell)         |
+| `.. … ….`  | `cd` up one/two/three levels           |
+| `ls/ll/la` | listing (GNU ls with colors)           |
+| `update`   | update packages (dnf/apt/pacman)        |
+| `install`  | install a package                      |
+| `g/gs/gl`  | git shortcuts (`git s`, `git l`...)    |
+| `top`      | `btop` (with Ayu theme)                |
+| `htop`     | `btop` (alias)                         |
+| `reload`   | `exec fish` (restart the shell)        |
 | `dk/dc`    | docker / docker compose                |
 
-### Funções (em `~/.config/fish/functions/`)
+### Functions (`~/.config/fish/functions/`)
 
-| Função             | O que faz                                  |
-|--------------------|--------------------------------------------|
-| `mkcd <dir>`       | cria e entra num diretório                 |
-| `extract <arq>`    | descompacta (tar.gz, zip, 7z, rar, zst...) |
-| `killporta <p>`    | mata processo ouvindo na porta `p`         |
-| `ports`            | lista portas em LISTEN                     |
+| Function         | What it does                                |
+|------------------|---------------------------------------------|
+| `mkcd <dir>`     | create a directory and cd into it            |
+| `extract <file>` | unpack (tar.gz, zip, 7z, rar, zst...)        |
+| `killport <p>`   | kill the process listening on port `p`       |
+| `ports`          | list ports in LISTEN                         |
 
-Diferentes aliases de `update/install/search` são escolhidos automaticamente conforme a distro (`/etc/os-release`).
+The `update`/`install`/`search` abbreviations are picked automatically based on the distro (`/etc/os-release`).
 
 ---
 
 ## Git
 
-Configuração com aliases úteis — editar `~/.config/git/.gitconfig`.
+Config with useful aliases — edit `~/.config/git/.gitconfig`.
 
-| Alias | Comando                       |
-|-------|------------------------------|
-| `git s`  | `status`                  |
-| `git c`  | `commit`                  |
-| `git p`  | `push`                    |
-| `git l`  | `log --oneline --graph`   |
-| `git a`  | `add`                     |
-| `git d`  | `diff`                    |
-| `git co` | `checkout`                |
-| `git cb` | `checkout -b`             |
-| `git br` | `branch`                  |
-| `git last` | `log -1 HEAD`           |
-| `git unstage` | `reset HEAD --`     |
-| `git amend` | `commit --amend --no-edit` |
+| Alias        | Command                       |
+|--------------|-------------------------------|
+| `git s`      | `status`                      |
+| `git c`      | `commit`                      |
+| `git p`      | `push`                        |
+| `git l`      | `log --oneline --graph`       |
+| `git a`      | `add`                         |
+| `git d`      | `diff`                        |
+| `git co`     | `checkout`                    |
+| `git cb`     | `checkout -b`                 |
+| `git br`     | `branch`                      |
+| `git last`   | `log -1 HEAD`                 |
+| `git unstage`| `reset HEAD --`               |
+| `git amend`  | `commit --amend --no-edit`     |
 
 ---
 
-## Detalhes da máquina de referência
+## Reference machine
 
 - **CPU**: AMD Ryzen 5 5600X (12) @ 4.65 GHz
 - **GPU**: AMD Radeon RX 6600 XT
 - **RAM**: 16 GB
-- **Storage**: 1TB NVMe (btrfs)
+- **Storage**: 1 TB NVMe (btrfs)
 - **WM**: KDE Plasma (Wayland)
 - **Kernel**: Fedora 44
 
-Visualize o sistema no terminal:
+Show system info in the terminal:
 
 ```bash
 fastfetch

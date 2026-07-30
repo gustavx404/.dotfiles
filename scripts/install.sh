@@ -135,8 +135,11 @@ resolve_dotfiles_dir() {
         return
     fi
 
-    # Rodando de dentro do repo local?
-    if [ -f "$script_dir/.config/shell/.zshrc" ]; then
+    # Running from inside a local clone?
+    # Check for any tell-tale file (fish era == zsh here, so check multiple)
+    if [ -f "$script_dir/.config/fish/config.fish" ] \
+        || [ -f "$script_dir/.config/kitty/kitty.conf" ] \
+        || [ -f "$script_dir/scripts/install.sh" ]; then
         DOTFILES_DIR="$script_dir"
         return
     fi
