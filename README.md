@@ -93,7 +93,6 @@ dotfiles/
 │       └── .gitconfig          # git config com aliases
 ├── scripts/
 │   └── install.sh              # instalador multi-distro
-└── opencode.json               # config do opencode (ver seção abaixo)
 ```
 
 > `~/.config/shell/` tem que existir antes de sourcear `aliases.sh` — o instalador cuida disso. Para clones manuais: `mkdir -p ~/.config/shell && ln -s .../.config/shell ~/.config/shell-dir` (o symlink aponta a pasta inteira).
@@ -169,25 +168,6 @@ Configuração com aliases úteis — editar `~/.config/git/.gitconfig`.
 | `git last` | `log -1 HEAD`           |
 | `git unstage` | `reset HEAD --`     |
 | `git amend` | `commit --amend --no-edit` |
-
----
-
-## opencode
-
-Este repositório é usado também como fonte da configuração do [opencode](https://opencode.ai). Esse setup **não é parte das dotfiles de terminal** — vive no mesmo repo, mas é independente.
-
-### Onde está
-
-- `opencode.json` — modelo, permissões, plugins e MCP servers (context7 + ai-memory).
-- `.opencode/skills/` — skills do opencode:
-  - `dotfile-manager/SKILL.md` — ajudar a gerenciar os dotfiles.
-  - `cross-platform/SKILL.md` — suporte a múltiplas distros.
-
-### Como usar
-
-As skills são carregadas automaticamente quando você inicia o opencode dentro deste repo (`.opencode/skills/`). O `opencode.json` no diretório do projeto sobrescreve qualquer `~/.config/opencode/opencode.json`.
-
-> Para isolar totalmente do prompt do terminal, considere mover para um repositório separado ainda que isso quebre o one-liner de instalação — atualmente elas coabitam por conveniência.
 
 ---
 
