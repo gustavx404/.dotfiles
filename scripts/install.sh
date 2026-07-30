@@ -43,6 +43,30 @@ install_pkg() {
     esac
 }
 
+# Instala starship via script oficial do projeto (não existe em dnf no FC44)
+# Único fallback que não é via gerenciador de pacotes.
+install_starship_official() {
+    command -v starship >/dev/null 2>&1 && { info "starship já instalado"; return; }
+    local tmp
+    tmp=$(mktemp -d)
+    log "Baixando starship.rs (script oficial)..."
+    if command -v curl >/dev/null; then
+        curl -fsSL https://starship.rs/install.sh -o "$tmp/starship-install.sh"
+    elif command -v wget >/dev/null; then
+        wget -qO "$tmp/starship-install.sh" https://starship.rs/install.sh
+    else
+        warn "sem curl/wget — pulei starship"; return 1
+    fi
+    # -y auto-confirma, -b <dir> instala em user space (sem sudo)
+    sh "$tmp/starship-install.sh" -y -b "$HOME/.local/bin" || { warn "install starship falhou"; return 1; }
+    rm -rf "$tmp"
+    case ":$PATH:" in
+        *":$HOME/.local/bin:"*) ;;
+        *) export PATH="$HOME/.local/bin:$PATH" ;;
+    esac
+    log "starship instalado em ~/.local/bin"
+}
+
 # Instala JetBrainsMono Nerd Font (não disponível em todos distros via apt/dnf)
 install_nerd_font() {
     local font_dir="$HOME/.local/share/fonts/jetbrainsmono-nerd"
@@ -124,24 +148,47 @@ main() {
     log "Gerenciador de pacotes: $pm"
 
     # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
+    # Exceção: starship não está empacotado no dnf do Fedora → instalaVia script oficial
     local need=()
+    local starship_missing=0
     for c in zsh starship zoxide fzf eza bat fastfetch git unzip curl; do
-        command -v "$c" >/dev/null 2>&1 || need+=("$c")
+        if ! command -v "$c" >/dev/null 2>&1; then
+            if [ "$c" = starship ]; then
+                starship_missing=1
+            else
+                need+=("$c")
+            fi
+        fi
     done
     if [ ${#need[@]} -gt 0 ]; then
-        info "Pacotes a instalar (${pm}): ${need[*]}"
-        install_pkg "$pm" "${need[@]}" || warn "alguns pacotes podem ter falhado"
-        # Nova checagem: ainda falta algum?
-        local still_missing=()
-        for c in "${need[@]}"; do
-            command -v "$c" >/dev/null 2>&1 || still_missing+=("$c")
+        info "Pacotes via ${pm}: ${need[*]}"
+        # instala um-a-um para não derrubar a transação inteira
+        local failed=()
+        for p in "${need[@]}"; do
+            if install_pkg "$pm" "$p"; then
+                log "instalado: $p"
+            else
+                warn "falhou: $p"
+                failed+=("$p")
+            fi
         done
-        if [ ${#still_missing[@]} -gt 0 ]; then
-            warn "Continua faltando: ${still_missing[*]}"
-            warn "Verifique se o pacote existe no repo da sua distro e instale manualmente."
-        fi
+        [ ${#failed[@]} -gt 0 ] && warn "Não instalados via ${pm}: ${failed[*]}"
     else
-        info "Todos os pacotes já estão instalados"
+        info "Todos os pacotes via ${pm} já estão instalados"
+    fi
+
+    # starship — único fallback (não empacotado no dnf em FC44)
+    if [ "$starship_missing" -eq 1 ]; then
+        if [ "$pm" = pacman ]; then
+            info "instalando starship via pacman"
+            install_pkg pacman starship || warn "starship pacman falhou"
+        elif [ "$pm" = apt ]; then
+            info "instalando starship via apt"
+            install_pkg apt starship || warn "starship apt falhou"
+        else
+            info "instalando starship via script oficial (ssl-only, sem cargo)"
+            install_starship_official || warn "instalação do starship falhou"
+        fi
     fi
 
     install_nerd_font
