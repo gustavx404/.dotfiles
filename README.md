@@ -118,7 +118,7 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 | `Ctrl+Shift+Q`  | Mover aba ↺           |
 | `Ctrl+Shift+E`  | Mover aba ↻           |
 | `Ctrl+Shift+X`  | Aba anterior          |
-| `Ctrl+Shift+C`  | Próxima aba           |
+| `Ctrl+Shift+G`  | Próxima aba           |
 | `Ctrl+Shift+R`  | Renomear aba          |
 | `Ctrl+Shift+V`  | Janela vizinha ←      |
 | `Ctrl+Shift+B`  | Janela vizinha →      |
