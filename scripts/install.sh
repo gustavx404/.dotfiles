@@ -136,11 +136,28 @@ resolve_dotfiles_dir() {
     fi
 
     # Running from inside a local clone?
-    # Check for any tell-tale file (fish era == zsh here, so check multiple)
+    # Detect via several tell-tale files (config path changed across versions)
     if [ -f "$script_dir/.config/fish/config.fish" ] \
         || [ -f "$script_dir/.config/kitty/kitty.conf" ] \
         || [ -f "$script_dir/scripts/install.sh" ]; then
         DOTFILES_DIR="$script_dir"
+        # Clean up stale symlinks left over from a previous curl-install
+        # that pointed to ~/.dotfiles (an older separate clone).
+        if [ "$DOTFILES_DIR" != "$HOME/.dotfiles" ]; then
+            for stale in ~/.config/fish ~/.config/kitty ~/.config/starship \
+                         ~/.config/btop ~/.config/fastfetch ~/.gitconfig; do
+                if [ -L "$stale" ]; then
+                    local link_target
+                    link_target=$(readlink "$stale")
+                    case "$link_target" in
+                        "$HOME/.dotfiles"*)
+                            warn "Substituindo symlink stale: $stale → $link_target"
+                            rm -f "$stale"
+                            ;;
+                    esac
+                fi
+            done
+        fi
         return
     fi
 
