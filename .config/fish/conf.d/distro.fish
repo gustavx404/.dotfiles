@@ -1,10 +1,15 @@
 # .config/fish/conf.d/distro.fish
 # Aliases que mudam conforme a distro (update/install/search/etc)
+# /etc/os-release é sintaxe sh, não source em fish — parsear manualmente
 
+set -l ID unknown
 if test -f /etc/os-release
-    source /etc/os-release 2>/dev/null
-else
-    set ID unknown
+    while read -l line
+        if string match -q 'ID=*' -- $line
+            set ID (string replace -r '^ID=|"' '' -- $line)
+            break
+        end
+    end < /etc/os-release
 end
 
 switch $ID
