@@ -109,26 +109,13 @@ Todos usam `Alt` (mod1) para operar só com a mão esquerda.
 
 | Atalho          | Ação                  |
 |-----------------|-----------------------|
-| `Ctrl+Shift+A`  | Aba 1                 |
-| `Ctrl+Shift+S`  | Aba 2                 |
-| `Ctrl+Shift+D`  | Aba 3                 |
-| `Ctrl+Shift+F`  | Aba 4                 |
+| `Ctrl+Shift+1…6`| Aba 1 a 6             |
 | `Ctrl+Shift+W`  | Nova aba              |
-| `Ctrl+Shift+Z`  | Fechar aba            |
-| `Ctrl+Shift+Q`  | Mover aba ↺           |
-| `Ctrl+Shift+E`  | Mover aba ↻           |
-| `Ctrl+Shift+X`  | Aba anterior          |
-| `Ctrl+Shift+G`  | Próxima aba           |
-| `Ctrl+Shift+R`  | Renomear aba          |
-| `Ctrl+Shift+V`  | Janela vizinha ←      |
-| `Ctrl+Shift+B`  | Janela vizinha →      |
-| `Ctrl+Shift+J`  | Split vertical (←/→)  |
-| `Ctrl+Shift+H`  | Split horizontal (↑/↓)|
-| `Ctrl+Shift+O`  | Limpar terminal       |
-| `Ctrl+Shift+U`  | Scroll ↑              |
-| `Ctrl+Shift+I`  | Scroll ↓              |
-| `Ctrl+Shift+N`  | Próximo prompt        |
-| `Ctrl+Shift+M`  | Prompt anterior       |
+| `Ctrl+Shift+Q`  | Fechar aba            |
+| `Ctrl+Shift+D`  | Janela vizinha →      |
+| `Ctrl+Shift+A`  | Janela vizinha ←      |
+| `Ctrl+Shift+S`  | Split vertical        |
+| `Ctrl+Shift+F`  | Limpar terminal       |
 
 ---
 
