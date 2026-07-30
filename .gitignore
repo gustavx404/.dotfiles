@@ -12,3 +12,11 @@
 # Config pessoal do opencode
 opencode.json
 .opencode/
+
+# Self-referenced symlinks (acidentais de "ln -sf dir dir/dir")
+.config/kitty/kitty
+.config/fish/fish
+.config/starship/starship
+.config/btop/btop
+.config/fastfetch/fastfetch
+.config/environment.d/environment.d
