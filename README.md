@@ -4,7 +4,7 @@
 
 Supports **Fedora**, **Ubuntu**, and **Arch** (the installer auto-detects the distro).
 
-![Terminal Setup](terminal.png)
+![Terminal Setup](terminal.png?v=2)
 
 ---
 
