@@ -10,7 +10,8 @@ fish_default_key_bindings     # emacs-style (Ctrl+A/E/K/etc) — você usa bindk
 set -g fish_key_bindings fish_default_key_bindings
 
 # ---- Ui ----
-# fish_greeting gerado por conf.d/greeting.fish (greeting com ícones Ayu)
+# Sem greeting ao iniciar o fish (a mensagem default "Bem-vindo ao fish..." é silenciada)
+set -g fish_greeting
 set -g fish_color_autosuggestion 686868     # cinza Ayu Dark
 set -g fish_color_command      green
 set -g fish_color_command_valid green        # sugestão de comando válido

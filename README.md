@@ -17,7 +17,7 @@ Supports **Fedora**, **Ubuntu**, and **Arch** (the installer auto-detects the di
 | Prompt    | [Starship](https://starship.rs/) with Ayu Dark palette |
 | Sysinfo   | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
 | Monitor   | [btop](https://github.com/aristocratos/btop) (custom Ayu Dark theme) |
-| Font      | JetBrainsMono Nerd Font (icons throughout the prompt, greeting, abbrevs) |
+| Font      | JetBrainsMono Nerd Font (icons in the prompt, abbrevs and fastfetch) |
 
 > Nerd Font is required for the icons (git branch , dir , OS , languages — all rendered via Nerd Font glyphs). The installer takes care of installing JetBrainsMono Nerd Font.
 
@@ -133,7 +133,7 @@ dotfiles/
 ## Shell (Fish)
 
 - **Prompt**: Starship (`ayu_dark` palette in `~/.config/starship/starship.toml`). Uses Nerd Font icons throughout: OS indicator, git branch, modified/deleted/staged status, languages (Python, Node, Rust, Go, PHP, Java), command duration, prompt arrow.
-- **Greeting**: custom `fish_greeting` (in `conf.d/greeting.fish`) shows user@host, kernel, and fish version — colored with the Ayu palette.
+- **Greeting disabled** — no welcome banner at all (just the prompt and fastfetch startup).
 - **Native to fish**: autosuggestions (Ayu gray), syntax highlighting (valid/invalid command coloring), abbreviations (`abbr` that expand when you press space).
 
 ### Abbreviations (`conf.d/abbrs.fish`, expand on space)
