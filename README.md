@@ -2,7 +2,7 @@
 
 > Kitty terminal · **Fish** shell · Starship prompt · btop monitor · fastfetch sysinfo — all under the **Ayu Dark** theme (blue as the primary accent).
 
-Supports **Fedora**, **Ubuntu**, and **Arch** (the installer auto-detects the distro).
+Supports **Fedora**, **Ubuntu**, **Arch** and derivatives (**CachyOS**, Manjaro, Garuda, EndeavourOS, ...) — the installer auto-detects the distro via `/etc/os-release` (`ID` + `ID_LIKE` fallback).
 
 ![Terminal Setup](terminal.png?v=2)
 
@@ -47,9 +47,9 @@ Or, with the repo already cloned:
 The installer:
 
 1. Detects the distro and installs via `dnf` / `apt` / `pacman`:
-   `fish git unzip curl btop fastfetch` (one package at a time, so a missing package doesn't abort the whole transaction).
-2. Installs **starship** via the official `starship.rs` script into `~/.local/bin` (not packaged in Fedora 44's dnf).
-3. Installs **JetBrainsMono Nerd Font** (downloaded directly from GitHub).
+   `fish kitty git unzip curl btop fastfetch` (one package at a time, so a missing package doesn't abort the whole transaction). On Arch-family distros the system is fully synced first (`pacman -Syu`, no partial upgrades); `apt update` refreshes the index on Debian-family.
+2. Installs **starship** from the system repos where available (Arch/CachyOS, recent Debian/Ubuntu); otherwise via the official `starship.rs` script into `~/.local/bin` (not packaged in Fedora 44's dnf).
+3. Installs **JetBrainsMono Nerd Font** — via the official `ttf-jetbrains-mono-nerd` package on Arch-family, or downloaded directly from GitHub elsewhere.
 4. Applies all symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop}`) and forcibly re-points stale symlinks from the old zsh setup.
 5. Runs `chsh -s /usr/bin/fish` to make fish the default login shell.
 

@@ -4,7 +4,9 @@
 # One-liner (cache-bust ?t= ignorance para contornar CDN do GitHub raw):
 #   curl -fsSL "https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh?t=$(date +%s)" | bash
 
-set -e
+# Sem 'set -e': erros sao tratados manualmente e o script NUNCA aborta no meio —
+# falhas sao coletadas em FAILED_STEPS e resumidas no final.
+FAILED_STEPS=()
 
 DOTFILES_DIR=""   # filled by resolve_dotfiles_dir; the default value used to short-circuit detection
 BACKUP_DIR="$HOME/.config/backup/$(date +%Y%m%d_%H%M%S)"
@@ -20,27 +22,63 @@ info()  { echo -e "${BLUE}[i]${NC} $1"; }
 # Helpers
 # ------------------------------------------------------------------
 
+# Detecta o gerenciador de pacotes pela distro.
+# IDs exatos primeiro; fallback DINAMICO via ID_LIKE (qualquer derivado
+# futuro — CachyOS, Archcraft, etc — cai na familia certa automaticamente).
+# OS_RELEASE_FILE=<path> sobrescreve /etc/os-release (usado em testes).
 detect_distro() {
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        case "$ID" in
-            fedora|rhel|centos|rocky|alma) echo dnf ;;
-            ubuntu|debian|pop|linuxmint|kali)   echo apt ;;
-            arch|manjaro|garuda|endeavouros) echo pacman ;;
-            *) error "Distro não suportada: $ID"; echo unknown ;;
-        esac
-    else
-        echo unknown
+    local osr="${OS_RELEASE_FILE:-/etc/os-release}"
+    local id="" id_like=""
+    if [ -f "$osr" ]; then
+        id=$(grep -E '^ID=' "$osr" | head -1 | cut -d= -f2 | tr -d '"' | tr -d "'")
+        id_like=$(grep -E '^ID_LIKE=' "$osr" | head -1 | cut -d= -f2 | tr -d '"' | tr -d "'")
     fi
+    case "$id" in
+        fedora|rhel|centos|rocky|alma)            echo dnf;    return 0 ;;
+        ubuntu|debian|pop|linuxmint|kali)         echo apt;    return 0 ;;
+        arch|manjaro|garuda|endeavouros|cachyos)  echo pacman; return 0 ;;
+    esac
+    case " $id_like " in
+        *" fedora "*|*" rhel "*)   echo dnf;    return 0 ;;
+        *" debian "*|*" ubuntu "*) echo apt;    return 0 ;;
+        *" arch "*)                echo pacman; return 0 ;;
+    esac
+    echo unknown
 }
 
+# Atualiza db/sistema ANTES de instalar (evita 404 de mirror stale).
+# Em Arch rolling, -Syu evita partial-upgrade e ja atualiza o sistema.
+pkg_refresh() {
+    local pm=$1
+    case "$pm" in
+        pacman)
+            log "Atualizando sistema (pacman -Syu)..."
+            sudo pacman -Syu --noconfirm || warn "pacman -Syu falhou — tentando instalar mesmo assim"
+            ;;
+        apt)
+            log "Atualizando indice (apt update)..."
+            sudo apt update || warn "apt update falhou — tentando instalar mesmo assim"
+            ;;
+        dnf)
+            sudo dnf makecache --refresh >/dev/null 2>&1 || true
+            ;;
+    esac
+}
+
+# Instala UM pacote; retorna !=0 se falhar (caller decide — nunca aborta)
 install_pkg() {
     local pm=$1; shift
     case "$pm" in
-        dnf)   sudo dnf install -y "$@" ;;
-        apt)   sudo apt update && sudo apt install -y "$@" ;;
-        pacman) sudo pacman -Sy --noconfirm "$@" ;;
-        *) error "Não foi possível instalar: $*"; return 1 ;;
+        dnf)    sudo dnf install -y "$@" ;;
+        apt)    sudo apt install -y "$@" ;;
+        pacman)
+            sudo pacman -S --needed --noconfirm "$@" && return 0
+            # retry unico apos refresh de db (mirror stale/404)
+            warn "pacman falhou em '$*' — refresh de db e retry..."
+            sudo pacman -Sy --noconfirm >/dev/null 2>&1
+            sudo pacman -S --needed --noconfirm "$@"
+            ;;
+        *) error "PM desconhecido: $pm (pacote: $*)"; return 1 ;;
     esac
 }
 
@@ -50,6 +88,8 @@ install_starship_official() {
     command -v starship >/dev/null 2>&1 && { info "starship já instalado"; return; }
     local tmp
     tmp=$(mktemp -d)
+    # -b instala em user space; o script oficial exige que o dir ja exista
+    mkdir -p "$HOME/.local/bin"
     log "Baixando starship.rs (script oficial)..."
     if command -v curl >/dev/null; then
         curl -fsSL https://starship.rs/install.sh -o "$tmp/starship-install.sh"
@@ -68,25 +108,38 @@ install_starship_official() {
     log "starship instalado em ~/.local/bin"
 }
 
-# Instala JetBrainsMono Nerd Font (não disponível em todos distros via apt/dnf)
+# Instala JetBrainsMono Nerd Font.
+# Arch/CachyOS: pacote oficial ttf-jetbrains-mono-nerd (preferido).
+# Demais: zip direto do GitHub (apt/dnf nao tem a variante Nerd).
 install_nerd_font() {
-    local font_dir="$HOME/.local/share/fonts/jetbrainsmono-nerd"
-    if fc-list | grep -qi "JetBrainsMono Nerd"; then
+    local pm=${1:-unknown}
+    if fc-list 2>/dev/null | grep -qi "JetBrainsMono Nerd"; then
         info "JetBrainsMono Nerd Font já instalada"
         return
     fi
-    log "Instalando JetBrainsMono Nerd Font..."
+    if [ "$pm" = pacman ] && pacman -Si ttf-jetbrains-mono-nerd >/dev/null 2>&1; then
+        log "Instalando JetBrainsMono Nerd Font via pacman..."
+        if install_pkg pacman ttf-jetbrains-mono-nerd; then
+            fc-cache -f >/dev/null 2>&1 || true
+            return
+        fi
+        warn "pacote da fonte falhou — tentando zip do GitHub"
+    fi
+    log "Instalando JetBrainsMono Nerd Font (zip do GitHub)..."
+    local font_dir="$HOME/.local/share/fonts/jetbrainsmono-nerd"
     mkdir -p "$font_dir"
     local url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
     local tmp=$(mktemp -d)
     if command -v curl >/dev/null; then
-        curl -fsSL "$url" -o "$tmp/jb.zip"
+        curl -fsSL "$url" -o "$tmp/jb.zip" || { warn "download da fonte falhou"; FAILED_STEPS+=("nerd font (download)"); rm -rf "$tmp"; return; }
     elif command -v wget >/dev/null; then
-        wget -qO "$tmp/jb.zip" "$url"
+        wget -qO "$tmp/jb.zip" "$url" || { warn "download da fonte falhou"; FAILED_STEPS+=("nerd font (download)"); rm -rf "$tmp"; return; }
     else
-        warn "sem curl/wget — pule a fonte"; return
+        warn "sem curl/wget — pulei a fonte"
+        FAILED_STEPS+=("nerd font (sem curl/wget)")
+        rm -rf "$tmp"; return
     fi
-    unzip -qo "$tmp/jb.zip" -d "$font_dir" 2>/dev/null || warn "unzip não disponível"
+    unzip -qo "$tmp/jb.zip" -d "$font_dir" 2>/dev/null || { warn "unzip falhou"; FAILED_STEPS+=("nerd font (unzip)"); }
     fc-cache -f >/dev/null 2>&1 || true
     rm -rf "$tmp"
 }
@@ -185,20 +238,26 @@ resolve_dotfiles_dir() {
 
 main() {
     local pm=$(detect_distro)
-    local starship_missing=0
     log "Gerenciador de pacotes: $pm"
 
+    if [ "$pm" = unknown ]; then
+        warn "Distro nao reconhecida — pacotes serao PULADOS (symlinks continuam)."
+        warn "Instale manualmente: fish kitty git unzip curl btop fastfetch starship"
+    else
+        # Cacheia a credencial sudo uma unica vez (evita prompts repetidos)
+        sudo -v || warn "sudo sem credencial — etapas de pacote vao avisar e seguir"
+        pkg_refresh "$pm"
+    fi
+
     # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
-    # Exceção: starship não empacotado no dnf do Fedora → via script oficial
+    # Exceções (fallback): starship em dnf antigo e a Nerd Font fora do Arch
     local need=()
-    for c in fish git unzip curl btop fastfetch; do
+    for c in fish kitty git unzip curl btop fastfetch; do
         if ! command -v "$c" >/dev/null 2>&1; then
             need+=("$c")
         fi
     done
-    # starship nao existe em dnf em FC44 — tratado à parte
-    command -v starship >/dev/null 2>&1 || starship_missing=1
-    if [ ${#need[@]} -gt 0 ]; then
+    if [ "$pm" != unknown ] && [ ${#need[@]} -gt 0 ]; then
         info "Pacotes via ${pm}: ${need[*]}"
         # instala um-a-um para não derrubar a transação inteira
         local failed=()
@@ -210,26 +269,33 @@ main() {
                 failed+=("$p")
             fi
         done
-        [ ${#failed[@]} -gt 0 ] && warn "Não instalados via ${pm}: ${failed[*]}"
-    else
+        if [ ${#failed[@]} -gt 0 ]; then
+            warn "Não instalados via ${pm}: ${failed[*]}"
+            FAILED_STEPS+=("pacotes ${pm}: ${failed[*]}")
+        fi
+    elif [ "$pm" != unknown ]; then
         info "Todos os pacotes via ${pm} já estão instalados"
     fi
 
-    # starship — único fallback (não empacotado no dnf em FC44)
-    if [ "$starship_missing" -eq 1 ]; then
-        if [ "$pm" = pacman ]; then
-            info "instalando starship via pacman"
-            install_pkg pacman starship || warn "starship pacman falhou"
-        elif [ "$pm" = apt ]; then
-            info "instalando starship via apt"
-            install_pkg apt starship || warn "starship apt falhou"
-        else
+    # starship — pacote de sistema onde existe (Arch/CachyOS, Debian/Ubuntu
+    # recentes); script oficial como fallback (dnf do Fedora nao empacota)
+    if ! command -v starship >/dev/null 2>&1; then
+        local starship_missing=1
+        if [ "$pm" = pacman ] || [ "$pm" = apt ]; then
+            info "instalando starship via ${pm}"
+            install_pkg "$pm" starship && starship_missing=0
+        fi
+        if [ "$starship_missing" -eq 1 ]; then
             info "instalando starship via script oficial (ssl-only, sem cargo)"
-            install_starship_official || warn "instalação do starship falhou"
+            install_starship_official && starship_missing=0
+        fi
+        if [ "$starship_missing" -eq 1 ]; then
+            warn "instalação do starship falhou"
+            FAILED_STEPS+=("starship")
         fi
     fi
 
-    install_nerd_font
+    install_nerd_font "$pm"
 
     # Links — tarefas (apagar links antigos de zsh/bash)
     log "Aplicando symlinks..."
@@ -282,6 +348,7 @@ main() {
                 warn "REINICIE o computador para a proxima sessao gráfica carregar o fish."
             else
                 warn "usermod também falhou: $(head -1 /tmp/usermod.err 2>/dev/null)"
+                FAILED_STEPS+=("login shell (chsh/usermod)")
                 warn "Aplique manualmente (qualquer um):"
                 warn "    chsh -s $fish_bin"
                 warn "    sudo usermod -s $fish_bin $USER"
@@ -290,6 +357,14 @@ main() {
     fi
 
     echo
+    if [ ${#FAILED_STEPS[@]} -gt 0 ]; then
+        warn "Concluido com ${#FAILED_STEPS[@]} pendencia(s):"
+        for s in "${FAILED_STEPS[@]}"; do
+            warn "  - $s"
+        done
+        warn "Re-rodar o installer resolve a maioria (mirror stale, senha do sudo)."
+        echo
+    fi
     log "Pronto! Reinicie o terminal (ou computador) para ativar as mudancas."
     log "Backup em: $BACKUP_DIR"
 }
@@ -315,12 +390,9 @@ case "${1:-install}" in
         echo
         info "Shell atual:  $SHELL"
         info "Login shell:  $(getent passwd "$USER" | cut -d: -f7)"
-        info "fish:      $(command -v fish   2>/dev/null || echo 'NÃO instalado')"
-        info "starship:  $(command -v starship 2>/dev/null || echo 'NÃO instalado')"
-        info "zoxide:   $(command -v zoxide  2>/dev/null || echo 'NÃO instalado')"
-        info "fzf:      $(command -v fzf    2>/dev/null || echo 'NÃO instalado')"
-        info "eza:      $(command -v eza    2>/dev/null || echo 'NÃO instalado')"
-        info "bat:      $(command -v bat    2>/dev/null || echo 'NÃO instalado')"
+        info "fish:     $(command -v fish   2>/dev/null || echo 'NÃO instalado')"
+        info "kitty:    $(command -v kitty  2>/dev/null || echo 'NÃO instalado')"
+        info "starship: $(command -v starship 2>/dev/null || echo 'NÃO instalado')"
         info "btop:     $(command -v btop   2>/dev/null || echo 'NÃO instalado')"
         info "fastfetch:$(command -v fastfetch 2>/dev/null || echo 'NÃO instalado')"
         ;;
