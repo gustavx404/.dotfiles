@@ -17,6 +17,7 @@ Supports **Fedora**, **Ubuntu**, **Arch** and derivatives (**CachyOS**, Manjaro,
 | Prompt    | [Starship](https://starship.rs/) with Ayu Dark palette |
 | Sysinfo   | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
 | Monitor   | [btop](https://github.com/aristocratos/btop) (custom Ayu Dark theme) |
+| GitHub    | [`gh`](https://cli.github.com/) CLI |
 | Font      | JetBrainsMono Nerd Font (icons in the prompt, abbrevs and fastfetch) |
 
 > Nerd Font is required for the icons (git branch , dir , OS , languages — all rendered via Nerd Font glyphs). The installer takes care of installing JetBrainsMono Nerd Font.
@@ -47,7 +48,7 @@ Or, with the repo already cloned:
 The installer:
 
 1. Detects the distro and installs via `dnf` / `apt` / `pacman`:
-   `fish kitty git unzip curl btop fastfetch` (one package at a time, so a missing package doesn't abort the whole transaction). On Arch-family distros the system is fully synced first (`pacman -Syu`, no partial upgrades); `apt update` refreshes the index on Debian-family.
+   `fish kitty git unzip curl gh btop fastfetch` (one package at a time, so a missing package doesn't abort the whole transaction). On Arch-family distros the system is fully synced first (`pacman -Syu`, no partial upgrades); `apt update` refreshes the index on Debian-family.
 2. Installs **starship** from the system repos where available (Arch/CachyOS, recent Debian/Ubuntu); otherwise via the official `starship.rs` script into `~/.local/bin` (not packaged in Fedora 44's dnf).
 3. Installs **JetBrainsMono Nerd Font** — via the official `ttf-jetbrains-mono-nerd` package on Arch-family, or downloaded directly from GitHub elsewhere.
 4. Applies all symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop}`) and forcibly re-points stale symlinks from the old zsh setup.

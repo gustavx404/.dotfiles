@@ -251,8 +251,16 @@ main() {
 
     # Dependências — só via gerenciador de pacotes, sem cargo/pip/etc
     # Exceções (fallback): starship em dnf antigo e a Nerd Font fora do Arch
+    # Mapeia nome do binario -> nome do pacote por distro
+    pkg_for() {  # <binary> <pm>
+        case "$1" in
+            gh)  [ "$2" = pacman ] && echo github-cli || echo gh ;;
+            *)   echo "$1" ;;
+        esac
+    }
+
     local need=()
-    for c in fish kitty git unzip curl btop fastfetch; do
+    for c in fish kitty git unzip curl gh btop fastfetch; do
         if ! command -v "$c" >/dev/null 2>&1; then
             need+=("$c")
         fi
@@ -261,12 +269,14 @@ main() {
         info "Pacotes via ${pm}: ${need[*]}"
         # instala um-a-um para não derrubar a transação inteira
         local failed=()
-        for p in "${need[@]}"; do
-            if install_pkg "$pm" "$p"; then
-                log "instalado: $p"
+        for bin in "${need[@]}"; do
+            local pkg
+            pkg=$(pkg_for "$bin" "$pm")
+            if install_pkg "$pm" "$pkg"; then
+                log "instalado: $bin"
             else
-                warn "falhou: $p"
-                failed+=("$p")
+                warn "falhou: $bin"
+                failed+=("$bin")
             fi
         done
         if [ ${#failed[@]} -gt 0 ]; then
@@ -395,6 +405,7 @@ case "${1:-install}" in
         info "starship: $(command -v starship 2>/dev/null || echo 'NÃO instalado')"
         info "btop:     $(command -v btop   2>/dev/null || echo 'NÃO instalado')"
         info "fastfetch:$(command -v fastfetch 2>/dev/null || echo 'NÃO instalado')"
+        info "gh:       $(command -v gh     2>/dev/null || echo 'NÃO instalado')"
         ;;
     backup)
         log "Backup manual..."
