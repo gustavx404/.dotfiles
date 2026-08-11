@@ -8,6 +8,7 @@
 
 # Ignorar caches
 .cache/
+.config/fish/fish_variables
 
 # Config pessoal do opencode
 opencode.json
