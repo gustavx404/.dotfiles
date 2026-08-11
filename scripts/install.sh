@@ -1,8 +1,9 @@
 #!/bin/bash
 # Dotfiles Installer — multi-distro
 # Usage: ./scripts/install.sh [install|status|backup|uninstall]
-# One-liner (cache-bust ?t= ignorance para contornar CDN do GitHub raw):
-#   curl -fsSL "https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh?t=$(date +%s)" | bash
+#
+# One-liner (always newest via bootstrap.sh + 'latest' tag):
+#   curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/bootstrap.sh | bash
 
 # Sem 'set -e': erros sao tratados manualmente e o script NUNCA aborta no meio —
 # falhas sao coletadas em FAILED_STEPS e resumidas no final.

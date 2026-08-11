@@ -31,9 +31,9 @@ Supports **Fedora**, **Ubuntu**, **Arch** and derivatives (**CachyOS**, Manjaro,
 ## Quick install
 
 ```bash
-# installs everything (packages + symlinks + chsh)
-# Use the cache-busting ?t= parameter to avoid stale GitHub CDN:
-curl -fsSL "https://raw.githubusercontent.com/gustavx404/.dotfiles/main/scripts/install.sh?t=$(date +%s)" | bash
+# Installs everything (packages + symlinks + chsh).
+# Always fetches the newest version via the 'latest' tag:
+curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/bootstrap.sh | bash
 ```
 
 Or, with the repo already cloned:
