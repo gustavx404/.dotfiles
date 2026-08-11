@@ -194,7 +194,7 @@ Config with useful aliases — edit `~/.config/git/.gitconfig`.
 - **RAM**: 16 GB
 - **Storage**: 1 TB NVMe (btrfs)
 - **WM**: KDE Plasma (Wayland)
-- **Kernel**: Fedora 44
+- **OS**: CachyOS (Arch-based)
 
 Show system info in the terminal:
 
