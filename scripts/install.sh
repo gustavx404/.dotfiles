@@ -13,7 +13,7 @@ DOTFILES_DIR=""   # filled by resolve_dotfiles_dir; the default value used to sh
 BACKUP_DIR="$HOME/.config/backup/$(date +%Y%m%d_%H%M%S)"
 
 # Pacotes instalados via pacman (todos nos repos oficiais do CachyOS/Arch).
-PACKAGES=(fish kitty git unzip curl github-cli btop fastfetch starship ttf-jetbrains-mono-nerd)
+PACKAGES=(fish kitty neovim git unzip curl github-cli btop fastfetch starship ttf-jetbrains-mono-nerd)
 
 # ---- Cores ----
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -259,6 +259,7 @@ case "${1:-install}" in
         info "Login shell:  $(getent passwd "$USER" | cut -d: -f7)"
         info "fish:     $(command -v fish   2>/dev/null || echo 'NÃO instalado')"
         info "kitty:    $(command -v kitty  2>/dev/null || echo 'NÃO instalado')"
+        info "nvim:     $(command -v nvim   2>/dev/null || echo 'NÃO instalado')"
         info "starship: $(command -v starship 2>/dev/null || echo 'NÃO instalado')"
         info "btop:     $(command -v btop   2>/dev/null || echo 'NÃO instalado')"
         info "fastfetch:$(command -v fastfetch 2>/dev/null || echo 'NÃO instalado')"

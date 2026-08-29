@@ -27,6 +27,7 @@ Personal terminal setup for **CachyOS** (works on any Arch-based distro — Manj
 | Prompt    | [Starship](https://starship.rs/) | `starship` |
 | Sysinfo   | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | `fastfetch` |
 | Monitor   | [btop](https://github.com/aristocratos/btop) | `btop` |
+| Editor    | [Neovim](https://neovim.io/) (`$EDITOR`, `git core.editor`) | `neovim` |
 | GitHub    | [`gh`](https://cli.github.com/) CLI | `github-cli` |
 | Font      | JetBrainsMono Nerd Font | `ttf-jetbrains-mono-nerd` |
 
@@ -87,7 +88,7 @@ Open a **new** terminal window afterwards (running shells/kitty don't reload con
 ### What the installer does
 
 1. **Packages** — one pacman transaction: `sudo pacman -Syu --needed --noconfirm <list>` syncs the system and installs at once (no partial upgrades). List:
-   `fish kitty git unzip curl github-cli btop fastfetch starship ttf-jetbrains-mono-nerd`.
+   `fish kitty neovim git unzip curl github-cli btop fastfetch starship ttf-jetbrains-mono-nerd`.
    `--needed` makes re-runs a no-op; one `-Syy` retry covers a stale mirror. Then `fc-cache -f`.
 2. **Symlinks** — `~/.gitconfig` and `~/.config/{kitty,fish,starship,fastfetch,btop,environment.d}`, re-pointing any stale links from a previous setup.
 3. **Login shell** — `chsh -s /usr/bin/fish` (falls back to `sudo usermod -s` if PAM blocks `chsh`).
