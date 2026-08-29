@@ -112,7 +112,9 @@ dotfiles/
 │   │   │   ├── mkcd.fish         # mkdir + cd
 │   │   │   ├── killport.fish     # kill process on a port
 │   │   │   ├── extract.fish      # unpack any extension
-│   │   │   └── ports.fish        # list ports in LISTEN
+│   │   │   ├── ports.fish        # list ports in LISTEN
+│   │   │   ├── ssh.fish          # kitten ssh inside kitty (ships terminfo)
+│   │   │   └── ssh-terminfo.fish # push xterm-kitty terminfo to a host
 │   │   └── completions/         # (empty — ready for customizations)
 │   └── git/
 │       └── .gitconfig          # git config with aliases
@@ -143,17 +145,36 @@ From then on every `git push` of `main` re-points `latest` to the same commit an
 
 Kitty implements the kitty keyboard protocol, so `Shift+Enter` reaches apps as a distinct key with no extra config (unlike Alacritty, which needs a manual `\r` binding).
 
-### Keyboard shortcuts (left-hand friendly, `Ctrl+Shift` prefix)
+### Keyboard shortcuts — left-hand only
 
-| Shortcut        | Action                |
-|-----------------|-----------------------|
-| `Ctrl+Shift+1…6`| Tab 1 to 6            |
-| `Ctrl+Shift+W`  | New tab               |
-| `Ctrl+Shift+Q`  | Close tab             |
-| `Ctrl+Shift+A`  | Previous tab          |
-| `Ctrl+Shift+D`  | Next tab              |
-| `Ctrl+Shift+S`  | Horizontal split      |
-| `Ctrl+Shift+F`  | Clear terminal        |
+Every default kitty shortcut is wiped (`clear_all_shortcuts yes`) and rebuilt so **nothing needs the right hand**: prefix is `Ctrl+Shift` (left-pinky claw) and every action key sits on the left half — `Q W E R T · A S D F G · Z X C V B`. No number row past `4`, no arrows, no `PageUp`/`Home`/`End`, no `[` `]`.
+
+| Shortcut         | Action                                    |
+|------------------|-------------------------------------------|
+| `Ctrl+Shift+T`   | New tab (inherits current dir)            |
+| `Ctrl+Shift+W`   | Close tab                                  |
+| `Ctrl+Shift+A` / `D` | Previous / next tab                    |
+| `Ctrl+Shift+1`–`4` | Jump to tab 1–4                          |
+| `Ctrl+Shift+S`   | Split (along the larger axis)              |
+| `Ctrl+Shift+E`   | Close pane                                 |
+| `Ctrl+Shift+R`   | Cycle panes                                |
+| `Ctrl+Shift+F`   | Clear screen (`Ctrl+L`)                    |
+| `Ctrl+Shift+B`   | Scrollback in the pager (search with `/`)  |
+| `Ctrl+Shift+Z` / `X` | Jump to previous / next prompt         |
+| `Ctrl+Shift+G`   | Show last command output                   |
+| `Ctrl+Shift+C` / `V` | Copy / paste                           |
+
+**Leader** — `Ctrl+Shift+Q`, release, then a key (tap-tap, no chord held):
+
+| Then… | Action                          | Then… | Action                  |
+|-------|---------------------------------|-------|-------------------------|
+| `W` / `S` / `D` | Font bigger / smaller / reset | `Z` | Zoom the current pane |
+| `C`   | Previous pane                   | `A` / `F` | Move tab left / right |
+| `T`   | Toggle fullscreen               | `B`   | New OS window            |
+| `G`   | Pick / open a URL on screen     | `R`   | Reload `kitty.conf`     |
+| `E`   | Edit `kitty.conf` in an overlay |       |                         |
+
+`Ctrl+Shift+Z` / `G` need shell integration (automatic with fish); splits need `enabled_layouts splits,stack` (already set).
 
 ---
 
@@ -185,6 +206,10 @@ Kitty implements the kitty keyboard protocol, so `Shift+Enter` reaches apps as a
 | `extract <file>` | unpack (tar.gz, zip, 7z, rar, zst...)        |
 | `killport <p>`   | kill the process listening on port `p`       |
 | `ports`          | list ports in LISTEN                         |
+| `ssh`            | inside kitty, runs `kitten ssh` (ships the `xterm-kitty` terminfo to the host); plain `ssh` otherwise |
+| `ssh-terminfo <host>` | one-shot: install the `xterm-kitty` terminfo on a host you can't reach with `kitten ssh` |
+
+> **Why `ssh` is wrapped:** kitty sets `TERM=xterm-kitty`; hosts without that terminfo entry break ncurses apps with `cannot initialize terminal type ($TERM="xterm-kitty")`. `kitten ssh` copies the entry on connect. The wrapper skips itself inside tmux/screen and when kitty isn't the terminal; `git`/`rsync`/`scp` call the `ssh` binary directly and are unaffected.
 
 `conf.d/distro.fish` also defines `search` (`pacman -Ss`), `remove` (`sudo pacman -Rns`), `orphans` (`pacman -Qtdq`) and `pacclean` (`sudo pacman -Sc`).
 
