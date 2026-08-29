@@ -2,8 +2,8 @@
 # Dotfiles Installer — CachyOS / Arch (pacman)
 # Usage: ./scripts/install.sh [install|status|backup|uninstall]
 #
-# One-liner (always newest via bootstrap.sh + 'latest' tag):
-#   curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/bootstrap.sh | bash
+# One-liner (clona sozinho em ~/.dotfiles se rodar via curl | bash):
+#   curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/install.sh | bash
 
 # Sem 'set -e': erros sao tratados manualmente e o script NUNCA aborta no meio —
 # falhas sao coletadas em FAILED_STEPS e resumidas no final.
@@ -95,18 +95,22 @@ link_config() {
 # ------------------------------------------------------------------
 
 resolve_dotfiles_dir() {
-    local script_dir
-    script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-
     if [ -n "$DOTFILES_DIR" ] && [ -d "$DOTFILES_DIR/.config" ]; then
         return
     fi
 
-    # Running from inside a local clone?
-    # Detect via several tell-tale files (config path changed across versions)
-    if [ -f "$script_dir/.config/fish/config.fish" ] \
+    # Rodando via `curl | bash`? Nao ha arquivo em disco (BASH_SOURCE vazio
+    # ou "bash") — pula direto pro clone em ~/.dotfiles.
+    local script_dir=""
+    if [ -n "${BASH_SOURCE[0]:-}" ] && [ "${BASH_SOURCE[0]}" != bash ]; then
+        script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd) || script_dir=""
+    fi
+
+    # Rodando de dentro de um clone local?
+    # Detecta por arquivos-testemunha (o caminho do config mudou entre versoes)
+    if [ -n "$script_dir" ] && { [ -f "$script_dir/.config/fish/config.fish" ] \
         || [ -f "$script_dir/.config/kitty/kitty.conf" ] \
-        || [ -f "$script_dir/scripts/install.sh" ]; then
+        || [ -f "$script_dir/scripts/install.sh" ]; }; then
         DOTFILES_DIR="$script_dir"
         # Clean up stale symlinks left over from a previous curl-install
         # that pointed to ~/.dotfiles (an older separate clone).

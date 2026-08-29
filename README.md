@@ -48,10 +48,10 @@ Deliberately lean: `ls`, `cat`, `cd`, `grep` stay as plain GNU coreutils — no 
 
 ### One-liner
 
-Fetches and runs the latest installer — packages, symlinks and `chsh` in one go:
+Runs the installer straight from the `latest` tag — packages, symlinks and `chsh` in one go. With no repo on disk it clones itself to `~/.dotfiles` first:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/install.sh | bash
 ```
 
 ### From a clone
@@ -170,8 +170,7 @@ dotfiles/
 │   └── git/
 │       └── .gitconfig          # aliases (git s / c / p / l / …)
 └── scripts/
-    ├── bootstrap.sh            # one-liner entry point (downloads install.sh)
-    ├── install.sh              # pacman installer (install / status / backup / uninstall)
+    ├── install.sh              # installer + one-liner entry point; self-clones if piped
     └── hooks/
         └── pre-push           # moves the `latest` tag to each pushed main commit
 ```
