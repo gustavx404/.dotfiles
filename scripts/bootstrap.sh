@@ -1,6 +1,6 @@
 #!/bin/bash
 # Dotfiles Bootstrap — lightweight entry point that fetches and runs the
-# full installer from the latest tag.
+# full installer from the latest tag. Target: CachyOS / Arch (pacman).
 #
 # One-liner:
 #   curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/bootstrap.sh | bash

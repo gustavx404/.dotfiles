@@ -47,10 +47,6 @@ format   = "[ $symbol]($style) "
 
 [os.symbols]
 Arch     = ""
-Ubuntu   = ""
-Fedora   = ""
-Macos    = ""
-Windows  = "󰍲"
 Linux    = ""
 
 [username]
