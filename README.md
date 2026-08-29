@@ -118,10 +118,22 @@ dotfiles/
 │       └── .gitconfig          # git config with aliases
 ├── scripts/
 │   ├── bootstrap.sh           # one-liner entry point (fetches install.sh)
-│   └── install.sh              # pacman installer (CachyOS / Arch)
+│   ├── install.sh              # pacman installer (CachyOS / Arch)
+│   └── hooks/
+│       └── pre-push           # keeps the `latest` tag on top of main
 ```
 
 > Fish auto-sources `~/.config/fish/conf.d/*.fish` at startup — `env`, `starship`, `abbrs`, and `distro` live in separate files.
+
+### The `latest` tag
+
+The one-liner installs from `refs/tags/latest`, so that tag has to follow `main`. A `pre-push` hook does it automatically — enable it once per clone:
+
+```bash
+git config core.hooksPath scripts/hooks
+```
+
+From then on every `git push` of `main` re-points `latest` to the same commit and force-pushes the tag. Skip it for a one-off push with `SKIP_LATEST_SYNC=1 git push`.
 
 ---
 

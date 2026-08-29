@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# pre-push — mantém a tag 'latest' sempre no topo de 'main'.
+#
+# Toda vez que 'main' for pushado, a tag 'latest' é movida pro mesmo commit
+# e re-pushada (force). O one-liner de instalação (curl | bash) usa
+# refs/tags/latest, então assim ele nunca fica velho.
+#
+# Instalar neste clone (uma vez):   git config core.hooksPath scripts/hooks
+# Pular pontualmente:               SKIP_LATEST_SYNC=1 git push ...
+
+set -u
+
+[ -n "${SKIP_LATEST_SYNC:-}" ] && exit 0
+
+remote="$1"
+zero=$(git hash-object --stdin </dev/null | tr '0-9a-f' '0')  # sha só de zeros
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [ "$remote_ref" = "refs/heads/main" ] || continue
+    [ "$local_sha" = "$zero" ] && continue   # deleção de branch
+
+    if [ "$(git rev-parse -q --verify refs/tags/latest || true)" = "$local_sha" ]; then
+        continue   # já sincronizada
+    fi
+
+    echo "pre-push: movendo tag 'latest' -> ${local_sha:0:12}"
+    git tag -f latest "$local_sha" >/dev/null
+    if ! SKIP_LATEST_SYNC=1 git push -f "$remote" latest; then
+        echo "pre-push: falhou o push da tag 'latest' — mova manualmente:" >&2
+        echo "  git push -f $remote latest" >&2
+    fi
+done
+
+exit 0
