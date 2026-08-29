@@ -56,9 +56,9 @@ The clone location doesn't matter — `install.sh` symlinks straight out of wher
 
 The installer:
 
-1. Syncs the system first (`sudo pacman -Syu`, no partial upgrades), then installs — one package at a time so a missing one doesn't abort the whole transaction:
+1. Installs everything in **one pacman transaction** — `sudo pacman -Syu --needed --noconfirm <packages>` syncs the system and pulls the packages at once (no partial upgrades):
    `fish kitty git unzip curl github-cli btop fastfetch starship ttf-jetbrains-mono-nerd`
-   (`--needed`, so re-running it is a no-op). Refreshes the font cache with `fc-cache -f`.
+   `--needed` makes re-runs a no-op; a single retry with `-Syy` covers a stale mirror. Then refreshes the font cache with `fc-cache -f`.
 2. Applies all symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop,environment.d}`) and forcibly re-points stale symlinks from the old zsh setup.
 3. Runs `chsh -s /usr/bin/fish` to make fish the default login shell (falls back to `sudo usermod -s` if PAM blocks `chsh`).
 

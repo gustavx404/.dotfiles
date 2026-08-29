@@ -45,20 +45,16 @@ is_pacman_system() {
     return 0
 }
 
-# Atualiza o sistema ANTES de instalar. Em Arch rolling, -Syu evita
-# partial-upgrade e ja deixa o sistema sincronizado.
-pkg_refresh() {
-    log "Atualizando sistema (pacman -Syu)..."
-    sudo pacman -Syu --noconfirm || warn "pacman -Syu falhou — tentando instalar mesmo assim"
-}
-
-# Instala UM pacote; retorna !=0 se falhar (caller decide — nunca aborta).
-install_pkg() {
-    sudo pacman -S --needed --noconfirm "$@" && return 0
-    # retry unico apos refresh de db (mirror stale / 404)
-    warn "pacman falhou em '$*' — refresh de db e retry..."
-    sudo pacman -Sy --noconfirm >/dev/null 2>&1
-    sudo pacman -S --needed --noconfirm "$@"
+# Sincroniza o sistema e instala TUDO numa transacao unica do pacman.
+# -Syu evita partial-upgrade; --needed torna o re-run idempotente.
+# Retorna !=0 se falhar (caller decide — nunca aborta o script).
+pkg_install_all() {
+    log "pacman -Syu + instalando: ${PACKAGES[*]}"
+    sudo pacman -Syu --needed --noconfirm "${PACKAGES[@]}" && return 0
+    # retry unico: forca refresh de db (mirror stale / 404) e tenta de novo
+    warn "pacman falhou — forçando refresh de db (-Syy) e novo retry..."
+    sudo pacman -Syy --noconfirm >/dev/null 2>&1
+    sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
 }
 
 backup_config() {
@@ -161,24 +157,13 @@ main() {
     else
         # Cacheia a credencial sudo uma unica vez (evita prompts repetidos)
         sudo -v || warn "sudo sem credencial — etapas de pacote vao avisar e seguir"
-        pkg_refresh
 
-        # instala um-a-um para não derrubar a transação inteira se um pacote sumir
-        local failed=()
-        for pkg in "${PACKAGES[@]}"; do
-            if install_pkg "$pkg"; then
-                log "ok: $pkg"
-            else
-                warn "falhou: $pkg"
-                failed+=("$pkg")
-            fi
-        done
-        if [ ${#failed[@]} -gt 0 ]; then
-            warn "Não instalados: ${failed[*]}"
-            FAILED_STEPS+=("pacman: ${failed[*]}")
+        if pkg_install_all; then
+            fc-cache -f >/dev/null 2>&1 || true
+        else
+            warn "instalação de pacotes falhou — rode o installer de novo (mirror stale / senha do sudo)"
+            FAILED_STEPS+=("pacman: ${PACKAGES[*]}")
         fi
-
-        fc-cache -f >/dev/null 2>&1 || true
     fi
 
     # Links — tarefas (apagar links antigos de zsh/bash)
