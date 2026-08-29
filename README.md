@@ -1,42 +1,55 @@
 # Dotfiles
 
-> Kitty terminal · **Fish** shell · Starship prompt · btop monitor · fastfetch sysinfo — all under the **Ayu Dark** theme (blue as the primary accent).
+> Kitty · **Fish** · Starship · btop · fastfetch — one **Ayu Dark** theme, blue as the accent.
 
-Built for **CachyOS** (and Arch / Arch-based derivatives — Manjaro, Garuda, EndeavourOS, Artix, ...). Single distro, single package manager: **pacman**. Every package comes from the official CachyOS/Arch repos — no `curl | sh` fallbacks.
+Personal terminal setup for **CachyOS** (works on any Arch-based distro — Manjaro, Garuda, EndeavourOS, Artix, …). Single distro, single package manager: **pacman**. Every tool comes from the official repos — no `curl | sh`, no `cargo install`, no language runtimes.
 
-![Terminal Setup](terminal.png?v=2)
+![Terminal setup](terminal.png?v=2)
+
+## Contents
+
+- [Stack](#stack)
+- [Install](#install) — [requirements](#requirements) · [one-liner](#one-liner) · [from a clone](#from-a-clone) · [just one config](#just-one-or-two-configs) · [what it does](#what-the-installer-does) · [after installing](#after-installing) · [login shell](#login-shell) · [updating](#updating) · [backups--uninstall](#backups--uninstall)
+- [Structure](#structure) — [the `latest` tag](#the-latest-tag)
+- [Kitty](#kitty-terminal) — [keyboard shortcuts (left-hand only)](#keyboard-shortcuts--left-hand-only)
+- [Fish](#shell-fish) — [abbreviations](#abbreviations) · [functions](#functions) · [package aliases](#package-aliases)
+- [Git](#git)
+- [Reference machine](#reference-machine)
 
 ---
 
 ## Stack
 
-| Component | Tool                                          |
-|-----------|-----------------------------------------------|
-| Terminal  | [Kitty](https://sw.kovidgoyal.net/kitty/) 0.47+ |
-| Shell     | [Fish](https://fishshell.com/) 3.7+ (native autosuggestions + syntax highlighting) |
-| Prompt    | [Starship](https://starship.rs/) with Ayu Dark palette |
-| Sysinfo   | [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
-| Monitor   | [btop](https://github.com/aristocratos/btop) (custom Ayu Dark theme) |
-| GitHub    | [`gh`](https://cli.github.com/) CLI |
-| Font      | JetBrainsMono Nerd Font (icons in the prompt, abbrevs and fastfetch) |
+| Component | Tool | Package |
+|-----------|------|---------|
+| Terminal  | [Kitty](https://sw.kovidgoyal.net/kitty/) 0.36+ | `kitty` |
+| Shell     | [Fish](https://fishshell.com/) 3.7+ | `fish` |
+| Prompt    | [Starship](https://starship.rs/) | `starship` |
+| Sysinfo   | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | `fastfetch` |
+| Monitor   | [btop](https://github.com/aristocratos/btop) | `btop` |
+| GitHub    | [`gh`](https://cli.github.com/) CLI | `github-cli` |
+| Font      | JetBrainsMono Nerd Font | `ttf-jetbrains-mono-nerd` |
 
-> Nerd Font is required for the icons (git branch , dir , OS , languages — all rendered via Nerd Font glyphs). The installer pulls it from the repos with `sudo pacman -S ttf-jetbrains-mono-nerd`; run that command yourself if you only want the font.
+**Ayu Dark palette** — `#0A0E14` bg · `#73D0FF` blue (primary) · `#FFD173` yellow · `#FF6767` red · `#AAD84C` green · `#F29E74` orange-magenta · `#686868` gray.
 
-> Lean stack: fish (with native autosuggestions, syntax highlighting, and abbreviations), starship (prompt), btop (monitor), and fastfetch (sysinfo). `ls`, `cat`, `cd`, etc. use GNU coreutils defaults — no wrappers.
-
-**Ayu Dark palette** — `#0A0E14` background · `#73D0FF` blue (primary) · `#FFD173` yellow · `#FF6767` red · `#AAD84C` green · `#F29E74` orange-magenta · `#686868` gray.
+Deliberately lean: `ls`, `cat`, `cd`, `grep` stay as plain GNU coreutils — no `eza`/`bat`/`zoxide` wrappers. Fish's own autosuggestions, syntax highlighting and abbreviations cover the ergonomics. A **Nerd Font is required** for the prompt glyphs (git branch, dir, OS, language icons); `kitty` also renders it.
 
 ---
 
 ## Install
 
-**Requirements:** CachyOS or an Arch-based distro (pacman), `sudo`, and an internet connection. `git` and `curl` are pulled in by the installer if missing.
+### Requirements
+
+- CachyOS or an Arch-based distro (`pacman` on `PATH`)
+- `sudo` rights and an internet connection
+
+`git` and `curl` are installed by the installer if missing.
 
 ### One-liner
 
+Fetches and runs the latest installer — packages, symlinks and `chsh` in one go:
+
 ```bash
-# Installs everything (packages + symlinks + chsh).
-# Always fetches the newest version via the 'latest' tag:
 curl -fsSL https://raw.githubusercontent.com/gustavx404/.dotfiles/refs/tags/latest/scripts/bootstrap.sh | bash
 ```
 
@@ -47,38 +60,77 @@ git clone https://github.com/gustavx404/.dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 
 ./scripts/install.sh            # install
-./scripts/install.sh status     # check configuration status
-./scripts/install.sh backup     # back up existing configs
-./scripts/install.sh uninstall  # remove symlinks (does NOT uninstall packages)
+./scripts/install.sh status     # show what's linked / installed
+./scripts/install.sh backup     # copy current configs to ~/.config/backup/<timestamp>/
+./scripts/install.sh uninstall  # remove the symlinks (packages stay)
 ```
 
-The clone location doesn't matter — `install.sh` symlinks straight out of wherever the repo lives, so keep it in `~/.dotfiles`, `~/Projetos/.dotfiles`, or anywhere else.
+The clone location is irrelevant — `install.sh` links straight out of wherever the repo sits (`~/.dotfiles`, `~/Projetos/.dotfiles`, …).
 
-The installer:
+### Just one or two configs
 
-1. Installs everything in **one pacman transaction** — `sudo pacman -Syu --needed --noconfirm <packages>` syncs the system and pulls the packages at once (no partial upgrades):
-   `fish kitty git unzip curl github-cli btop fastfetch starship ttf-jetbrains-mono-nerd`
-   `--needed` makes re-runs a no-op; a single retry with `-Syy` covers a stale mirror. Then refreshes the font cache with `fc-cache -f`.
-2. Applies all symlinks (`~/.gitconfig`, `~/.config/{kitty,fish,starship,fastfetch,btop,environment.d}`) and forcibly re-points stale symlinks from the old zsh setup.
-3. Runs `chsh -s /usr/bin/fish` to make fish the default login shell (falls back to `sudo usermod -s` if PAM blocks `chsh`).
+The configs are independent. To adopt only some, back up what's there and symlink by hand:
 
-If `pacman` isn't found the installer skips step 1 and still applies the symlinks. Check status with `./scripts/install.sh status`.
+```bash
+D=~/Projetos/.dotfiles                       # wherever you cloned it
+mkdir -p ~/.config/backup
+mv ~/.config/kitty ~/.config/backup/ 2>/dev/null
+
+ln -s "$D/.config/kitty" ~/.config/kitty
+ln -s "$D/.config/fish"  ~/.config/fish
+ln -s "$D/.config/starship" ~/.config/starship
+ln -s "$D/.config/git/.gitconfig" ~/.gitconfig
+```
+
+Open a **new** terminal window afterwards (running shells/kitty don't reload configs live).
+
+### What the installer does
+
+1. **Packages** — one pacman transaction: `sudo pacman -Syu --needed --noconfirm <list>` syncs the system and installs at once (no partial upgrades). List:
+   `fish kitty git unzip curl github-cli btop fastfetch starship ttf-jetbrains-mono-nerd`.
+   `--needed` makes re-runs a no-op; one `-Syy` retry covers a stale mirror. Then `fc-cache -f`.
+2. **Symlinks** — `~/.gitconfig` and `~/.config/{kitty,fish,starship,fastfetch,btop,environment.d}`, re-pointing any stale links from a previous setup.
+3. **Login shell** — `chsh -s /usr/bin/fish` (falls back to `sudo usermod -s` if PAM blocks `chsh`).
+
+No `pacman`? Step 1 is skipped, the symlinks are still applied.
+
+### After installing
+
+- Open a **new kitty window** (or `exec fish`) to pick up the shell + terminal config.
+- **Reboot** — or `sudo systemctl restart plasmalogin.service` — so the graphical session picks up fish as `$SHELL` (see below).
+- `./scripts/install.sh status` should show every entry linked.
 
 ### Login shell
 
-The installer tries to make **fish** your login shell by updating `/etc/passwd` via `chsh`. The change only takes effect at the **next login** — already-running sessions keep their previous shell until reopened (Kitty/Wayland/desktop session).
+`chsh` updates `/etc/passwd`, but it only takes effect at the **next login** — running sessions keep their old shell.
 
-If `chsh` fails (PAM restrictions), the installer automatically falls back to `sudo usermod -s`. Only if both fail, apply manually:
+If both `chsh` and `usermod` fail, do it by hand:
 
 ```bash
-chsh -s /usr/bin/fish          # via PAM (asks for password)
-sudo usermod -s /usr/bin/fish $USER   # direct fallback in /etc/passwd
+chsh -s /usr/bin/fish                  # via PAM (asks for your password)
+sudo usermod -s /usr/bin/fish "$USER"  # or edit /etc/passwd directly
 ```
 
-If `$SHELL` still shows the old shell after installing:
-- The **display manager** (`plasmalogin.service` on KDE Plasma 6) likely started before `chsh` and cached your old `$SHELL`.
-- Fix: **reboot** (or, to avoid a full reboot, run `sudo systemctl restart plasmalogin.service` — this drops the graphical session and forces a fresh login that respects `/etc/passwd`).
-- Nothing for the script to fix — `/etc/passwd` is already correct (`getent passwd $USER | cut -d: -f7`).
+If `$SHELL` still shows the old shell after that:
+
+- On **KDE Plasma 6**, `plasmalogin.service` started before `chsh` and cached the old `$SHELL`.
+- Fix: **reboot**, or `sudo systemctl restart plasmalogin.service` (drops the graphical session, forces a fresh login).
+- `/etc/passwd` is already correct — check with `getent passwd "$USER" | cut -d: -f7`.
+
+### Updating
+
+Configs are symlinks, so a pull is enough:
+
+```bash
+cd ~/.dotfiles && git pull
+```
+
+New files under `conf.d/` / `functions/` are picked up on the next new shell. `kitty.conf` changes need a new kitty window (or `Ctrl+Shift+Q` then `R` to reload). Re-run `./scripts/install.sh` only when the package list or the set of linked configs changed.
+
+### Backups & uninstall
+
+- `install.sh` copies anything it's about to replace into `~/.config/backup/<timestamp>/` before linking.
+- `./scripts/install.sh uninstall` removes the symlinks only — installed packages are left in place. Restore a config by moving its backup folder back.
 
 ---
 
@@ -88,165 +140,171 @@ If `$SHELL` still shows the old shell after installing:
 dotfiles/
 ├── .config/
 │   ├── kitty/
-│   │   ├── kitty.conf         # main config (includes the theme)
-│   │   └── current-theme.conf # Ayu Dark palette (colors only)
+│   │   ├── kitty.conf          # main config (left-hand keymap, QoL, includes the theme)
+│   │   └── current-theme.conf  # Ayu Dark palette (colors only)
 │   ├── starship/
-│   │   └── starship.toml       # prompt with ayu_dark palette
+│   │   └── starship.toml       # prompt, ayu_dark palette
 │   ├── fastfetch/
-│   │   └── config.jsonc        # system info (blue keyColor)
+│   │   └── config.jsonc        # sysinfo (blue keyColor)
 │   ├── btop/
-│   │   ├── btop.conf            # monitor config (blue accent)
-│   │   └── themes/
-│   │       └── ayu-dark.theme   # custom Ayu Dark theme
+│   │   ├── btop.conf           # monitor (blue accent)
+│   │   └── themes/ayu-dark.theme
 │   ├── environment.d/
-│   │   └── dotfiles.conf          # Wayland PATH (~/.local/bin, ~/.cargo/bin, ~/.opencode/bin)
+│   │   └── dotfiles.conf       # Wayland session PATH (~/.local/bin, ~/.cargo/bin, ~/.opencode/bin)
 │   ├── fish/
-│   │   ├── config.fish          # main config (colors, history, key bindings)
-│   │   ├── conf.d/              # auto-sourced by fish
-│   │   │   ├── 05-fastfetch.fish # auto-run fastfetch on startup
-│   │   │   ├── env.fish          # PATH, EDITOR, PAGER
-│   │   │   ├── starship.fish     # init starship
-│   │   │   ├── abbrs.fish        # abbreviations (.. .., ls, git, etc)
-│   │   │   └── distro.fish       # pacman aliases (update/install/search/remove)
-│   │   ├── functions/           # custom commands (autoload)
-│   │   │   ├── mkcd.fish         # mkdir + cd
-│   │   │   ├── killport.fish     # kill process on a port
-│   │   │   ├── extract.fish      # unpack any extension
-│   │   │   ├── ports.fish        # list ports in LISTEN
-│   │   │   ├── ssh.fish          # kitten ssh inside kitty (ships terminfo)
-│   │   │   └── ssh-terminfo.fish # push xterm-kitty terminfo to a host
-│   │   └── completions/         # (empty — ready for customizations)
+│   │   ├── config.fish         # history, emacs key bindings, Ayu Dark fish_color_*
+│   │   ├── conf.d/             # auto-sourced, alphabetical
+│   │   │   ├── 05-fastfetch.fish  # run fastfetch on each interactive start
+│   │   │   ├── abbrs.fish         # abbreviations (expand on space)
+│   │   │   ├── distro.fish        # pacman aliases: update/install/search/remove/orphans/pacclean
+│   │   │   ├── env.fish           # PATH, EDITOR=nvim, PAGER=less
+│   │   │   └── starship.fish      # starship init
+│   │   └── functions/          # autoloaded, one command per file
+│   │       ├── extract.fish       # unpack any archive
+│   │       ├── killport.fish      # kill whatever listens on a port
+│   │       ├── mkcd.fish          # mkdir -p + cd
+│   │       ├── ports.fish         # list LISTEN sockets
+│   │       ├── ssh.fish           # kitten ssh inside kitty (ships terminfo)
+│   │       └── ssh-terminfo.fish  # push xterm-kitty terminfo to a host
 │   └── git/
-│       └── .gitconfig          # git config with aliases
-├── scripts/
-│   ├── bootstrap.sh           # one-liner entry point (fetches install.sh)
-│   ├── install.sh              # pacman installer (CachyOS / Arch)
-│   └── hooks/
-│       └── pre-push           # keeps the `latest` tag on top of main
+│       └── .gitconfig          # aliases (git s / c / p / l / …)
+└── scripts/
+    ├── bootstrap.sh            # one-liner entry point (downloads install.sh)
+    ├── install.sh              # pacman installer (install / status / backup / uninstall)
+    └── hooks/
+        └── pre-push           # moves the `latest` tag to each pushed main commit
 ```
-
-> Fish auto-sources `~/.config/fish/conf.d/*.fish` at startup — `env`, `starship`, `abbrs`, and `distro` live in separate files.
 
 ### The `latest` tag
 
-The one-liner installs from `refs/tags/latest`, so that tag has to follow `main`. A `pre-push` hook does it automatically — enable it once per clone:
+The one-liner installs from `refs/tags/latest`, so that tag must track `main`. The `pre-push` hook keeps it there — enable it once per clone:
 
 ```bash
 git config core.hooksPath scripts/hooks
 ```
 
-From then on every `git push` of `main` re-points `latest` to the same commit and force-pushes the tag. Skip it for a one-off push with `SKIP_LATEST_SYNC=1 git push`.
+Every `git push` of `main` then re-points `latest` to the same commit and force-pushes the tag. Bypass for a single push with `SKIP_LATEST_SYNC=1 git push`.
 
 ---
 
 ## Kitty terminal
 
-**Ayu Dark** theme loaded via `include current-theme.conf` (keeps colors separate from the config). 85% transparency + 30 blur.
+**Ayu Dark** via `include current-theme.conf` (colors kept separate from behaviour). 85% opacity + 30 blur, beam cursor (no blink), bell silent with a visual + tab marker, desktop notification when a background command finishes.
 
-Kitty implements the kitty keyboard protocol, so `Shift+Enter` reaches apps as a distinct key with no extra config (unlike Alacritty, which needs a manual `\r` binding).
+Kitty speaks the kitty keyboard protocol, so `Shift+Enter` arrives as a distinct key with no config (Alacritty needs a manual `\r` binding).
 
 ### Keyboard shortcuts — left-hand only
 
-Every default kitty shortcut is wiped (`clear_all_shortcuts yes`) and rebuilt so **nothing needs the right hand**: prefix is `Ctrl+Shift` (left-pinky claw) and every action key sits on the left half — `Q W E R T · A S D F G · Z X C V B`. No number row past `4`, no arrows, no `PageUp`/`Home`/`End`, no `[` `]`.
+All of kitty's defaults are wiped (`clear_all_shortcuts yes`) and rebuilt so **nothing needs the right hand**. Prefix `Ctrl+Shift` (left-pinky claw); every action key is on the left half — `Q W E R T · A S D F G · Z X C V B`. No number row past `4`, no arrows, no `PageUp`/`Home`/`End`, no `[` `]`.
 
-| Shortcut         | Action                                    |
-|------------------|-------------------------------------------|
-| `Ctrl+Shift+T`   | New tab (inherits current dir)            |
-| `Ctrl+Shift+W`   | Close tab                                  |
-| `Ctrl+Shift+A` / `D` | Previous / next tab                    |
-| `Ctrl+Shift+1`–`4` | Jump to tab 1–4                          |
-| `Ctrl+Shift+S`   | Split (along the larger axis)              |
-| `Ctrl+Shift+E`   | Close pane                                 |
-| `Ctrl+Shift+R`   | Cycle panes                                |
-| `Ctrl+Shift+F`   | Clear screen (`Ctrl+L`)                    |
-| `Ctrl+Shift+B`   | Scrollback in the pager (search with `/`)  |
-| `Ctrl+Shift+Z` / `X` | Jump to previous / next prompt         |
-| `Ctrl+Shift+G`   | Show last command output                   |
-| `Ctrl+Shift+C` / `V` | Copy / paste                           |
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+T` | New tab (inherits current dir) |
+| `Ctrl+Shift+W` | Close tab |
+| `Ctrl+Shift+A` / `D` | Previous / next tab |
+| `Ctrl+Shift+1`–`4` | Jump to tab 1–4 |
+| `Ctrl+Shift+S` | Split the window (larger axis) |
+| `Ctrl+Shift+E` | Close pane |
+| `Ctrl+Shift+R` | Cycle panes |
+| `Ctrl+Shift+F` | Clear screen (`Ctrl+L`) |
+| `Ctrl+Shift+B` | Scrollback in the pager (`/` to search) |
+| `Ctrl+Shift+Z` / `X` | Jump to previous / next prompt |
+| `Ctrl+Shift+G` | Show last command's output |
+| `Ctrl+Shift+C` / `V` | Copy / paste |
 
-**Leader** — `Ctrl+Shift+Q`, release, then a key (tap-tap, no chord held):
+**Leader** — `Ctrl+Shift+Q`, release, then one key (tap-tap, no chord held):
 
-| Then… | Action                          | Then… | Action                  |
-|-------|---------------------------------|-------|-------------------------|
+| Then | Action | Then | Action |
+|------|--------|------|--------|
 | `W` / `S` / `D` | Font bigger / smaller / reset | `Z` | Zoom the current pane |
-| `C`   | Previous pane                   | `A` / `F` | Move tab left / right |
-| `T`   | Toggle fullscreen               | `B`   | New OS window            |
-| `G`   | Pick / open a URL on screen     | `R`   | Reload `kitty.conf`     |
-| `E`   | Edit `kitty.conf` in an overlay |       |                         |
+| `C` | Previous pane | `A` / `F` | Move tab left / right |
+| `T` | Toggle fullscreen | `B` | New OS window |
+| `G` | Pick & open a URL on screen | `R` | Reload `kitty.conf` |
+| `E` | Edit `kitty.conf` in an overlay | | |
 
-`Ctrl+Shift+Z` / `G` need shell integration (automatic with fish); splits need `enabled_layouts splits,stack` (already set).
+`Ctrl+Shift+Z` / `G` rely on shell integration (automatic with fish). Splits use `enabled_layouts splits,stack` (already set). Selecting text with the mouse copies it (`copy_on_select`); middle-click pastes.
 
 ---
 
 ## Shell (Fish)
 
-- **Prompt**: Starship (`ayu_dark` palette in `~/.config/starship/starship.toml`). Uses Nerd Font icons throughout: OS indicator, git branch, modified/deleted/staged status, languages (Python, Node, Rust, Go, PHP, Java), command duration, prompt arrow.
-- **Greeting disabled** — no welcome banner at all (just the prompt and fastfetch startup).
-- **Native to fish**: autosuggestions (Ayu gray), syntax highlighting (valid/invalid command coloring), abbreviations (`abbr` that expand when you press space).
+- **Prompt** — Starship, `ayu_dark` palette (`~/.config/starship/starship.toml`): OS icon, git branch + dirty/staged state, language versions (Python, Node, Rust, Go, PHP, Java), command duration, arrow.
+- **No greeting** — the fish welcome banner is silenced; each interactive shell runs `fastfetch` instead (skipped if its config isn't linked).
+- **Native fish** — autosuggestions (Ayu gray), syntax highlighting, abbreviations. Emacs key bindings (`Ctrl+A`/`E`/`K`/…).
+- **`EDITOR`** is `nvim` when present, else `vi`; `PAGER` is `less -R`.
 
-### Abbreviations (`conf.d/abbrs.fish`, expand on space)
+### Abbreviations
 
-| Abbr       | Command                                |
-|------------|----------------------------------------|
-| `.. … ….`  | `cd` up one/two/three levels           |
-| `ls/ll/la` | listing (GNU ls with colors)           |
-| `update`   | `sudo pacman -Syu`                     |
-| `install`  | `sudo pacman -S <pkg>`                 |
-| `g/gs/gl`  | git shortcuts (`git s`, `git l`...)    |
-| `top`      | `btop` (with Ayu theme)                |
-| `htop`     | `btop` (alias)                         |
-| `reload`   | `exec fish` (restart the shell)        |
-| `dk/dc`    | docker / docker compose                |
+`conf.d/abbrs.fish` — expand when you press space, so the real command lands in history:
 
-### Functions (`~/.config/fish/functions/`)
+| Abbr | Expands to |
+|------|-----------|
+| `..` / `...` / `....` | `cd` up 1 / 2 / 3 levels |
+| `ls` / `ll` / `la` / `l` | GNU `ls` variants, colored |
+| `g` / `gs` / `ga` / `gc` / `gp` / `gl` / `gd` | `git` / `git s` / `a` / `c` / `p` / `l` / `d` |
+| `top` / `htop` | `btop` |
+| `df` / `du` / `free` | `-h` variants |
+| `dk` / `dc` | `docker` / `docker compose` |
+| `fishrc` | `$EDITOR ~/.config/fish/config.fish` |
+| `reload` | `exec fish` |
+| `weather` | `curl -s wttr.in \| head -20` |
 
-| Function         | What it does                                |
-|------------------|---------------------------------------------|
-| `mkcd <dir>`     | create a directory and cd into it            |
-| `extract <file>` | unpack (tar.gz, zip, 7z, rar, zst...)        |
-| `killport <p>`   | kill the process listening on port `p`       |
-| `ports`          | list ports in LISTEN                         |
-| `ssh`            | inside kitty, runs `kitten ssh` (ships the `xterm-kitty` terminfo to the host); plain `ssh` otherwise |
-| `ssh-terminfo <host>` | one-shot: install the `xterm-kitty` terminfo on a host you can't reach with `kitten ssh` |
+### Functions
 
-> **Why `ssh` is wrapped:** kitty sets `TERM=xterm-kitty`; hosts without that terminfo entry break ncurses apps with `cannot initialize terminal type ($TERM="xterm-kitty")`. `kitten ssh` copies the entry on connect. The wrapper skips itself inside tmux/screen and when kitty isn't the terminal; `git`/`rsync`/`scp` call the `ssh` binary directly and are unaffected.
+`~/.config/fish/functions/` — one autoloaded command per file:
 
-`conf.d/distro.fish` also defines `search` (`pacman -Ss`), `remove` (`sudo pacman -Rns`), `orphans` (`pacman -Qtdq`) and `pacclean` (`sudo pacman -Sc`).
+| Function | What it does |
+|----------|--------------|
+| `mkcd <dir>` | `mkdir -p` then `cd` into it |
+| `extract <file>` | unpack `.tar.*`, `.zip`, `.7z`, `.rar`, `.zst`, … |
+| `killport <port>` | kill whatever is listening on `<port>` |
+| `ports` | list sockets in `LISTEN` |
+| `ssh` | inside kitty → `kitten ssh` (copies the `xterm-kitty` terminfo to the host); plain `ssh` otherwise |
+| `ssh-terminfo <host>` | one-shot: install the `xterm-kitty` terminfo on a host you can't reach with `kitten ssh` (jump host, from inside tmux, Ansible) |
+
+> **Why `ssh` is wrapped** — kitty sets `TERM=xterm-kitty`. A host without that terminfo entry breaks ncurses apps (`nano`, `htop`, …) with `cannot initialize terminal type ($TERM="xterm-kitty")`. `kitten ssh` ships the entry on connect. The wrapper steps aside inside tmux/screen and when kitty isn't the terminal; `git` / `rsync` / `scp` invoke the `ssh` binary directly and are never affected.
+
+### Package aliases
+
+`conf.d/distro.fish` (pacman-only):
+
+| Alias | Command |
+|-------|---------|
+| `update` | `sudo pacman -Syu` |
+| `install` | `sudo pacman -S` |
+| `search` | `pacman -Ss` |
+| `remove` | `sudo pacman -Rns` |
+| `orphans` | `pacman -Qtdq` |
+| `pacclean` | `sudo pacman -Sc` |
 
 ---
 
 ## Git
 
-Config with useful aliases — edit `~/.config/git/.gitconfig`.
+Aliases in `~/.config/git/.gitconfig`:
 
-| Alias        | Command                       |
-|--------------|-------------------------------|
-| `git s`      | `status`                      |
-| `git c`      | `commit`                      |
-| `git p`      | `push`                        |
-| `git l`      | `log --oneline --graph`       |
-| `git a`      | `add`                         |
-| `git d`      | `diff`                        |
-| `git co`     | `checkout`                    |
-| `git cb`     | `checkout -b`                 |
-| `git br`     | `branch`                      |
-| `git last`   | `log -1 HEAD`                 |
-| `git unstage`| `reset HEAD --`               |
-| `git amend`  | `commit --amend --no-edit`     |
+| Alias | Command | | Alias | Command |
+|-------|---------|-|-------|---------|
+| `git s` | `status` | | `git co` | `checkout` |
+| `git c` | `commit` | | `git cb` | `checkout -b` |
+| `git a` | `add` | | `git br` | `branch` |
+| `git p` | `push` | | `git last` | `log -1 HEAD` |
+| `git l` | `log --oneline --graph` | | `git unstage` | `reset HEAD --` |
+| `git d` | `diff` | | `git amend` | `commit --amend --no-edit` |
 
 ---
 
 ## Reference machine
 
-- **CPU**: AMD Ryzen 5 5600X (12) @ 4.65 GHz
-- **GPU**: AMD Radeon RX 6600 XT
-- **RAM**: 16 GB
-- **Storage**: 1 TB NVMe (btrfs)
-- **WM**: KDE Plasma (Wayland)
-- **OS**: CachyOS (Arch-based)
-
-Show system info in the terminal:
+| | |
+|-|-|
+| CPU | AMD Ryzen 5 5600X (12) @ 4.65 GHz |
+| GPU | AMD Radeon RX 6600 XT |
+| RAM | 16 GB |
+| Storage | 1 TB NVMe (btrfs) |
+| Desktop | KDE Plasma (Wayland) |
+| OS | CachyOS (Arch-based) |
 
 ```bash
-fastfetch
+fastfetch   # show it in the terminal
 ```

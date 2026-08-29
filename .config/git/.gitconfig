@@ -39,8 +39,8 @@
 [color]
     ui = auto
 [credential "https://github.com"]
-	helper = 
-	helper = !/home/one/.local/bin/gh auth git-credential
+	helper =
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/home/one/.local/bin/gh auth git-credential
+	helper =
+	helper = !gh auth git-credential
